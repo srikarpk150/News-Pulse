@@ -38,7 +38,6 @@ const Home = ({ navigation }: HomeScreenProps) => {
       setIsLoggedIn(false);
       showSnackbar('Logout Successful');
       navigation.navigate('Login')
-      window.location.reload();
     })
   }
 

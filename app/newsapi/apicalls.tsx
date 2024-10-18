@@ -14,7 +14,6 @@ class NewsService {
         try {
             const apiKey: string = process.env.EXPO_PUBLIC_API_Key!;
             const url = 'everything?q=international&apiKey='+apiKey;
-            console.log(url)
             const response = await this.apiClient.get(url);
             return response.data;
         } catch (error) {

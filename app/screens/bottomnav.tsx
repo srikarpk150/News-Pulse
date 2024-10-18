@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import Signup from '../screens/signup'; 
 import Login from '../screens/login'; 
-import Home from './home'; 
+import Home from './Home'; 
 
 const Tab = createBottomTabNavigator();
 
