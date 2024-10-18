@@ -1,33 +1,37 @@
-import React, { useContext, useEffect, useState } from 'react'
-import {AppwriteContext} from './appwrite/appwritecontext';
+import React, { useContext, useEffect, useState } from 'react';
+import { AppwriteContext } from './appwrite/appwritecontext';
 import Loading from '../components/loading';
-import { AppStack } from './Routes/mainapp';
-import { AuthStack } from './Routes/Auth';
+import { NavigationContainer } from '@react-navigation/native';
+import { RouteStack } from './Routes/path';
 
 export default function App() {
-    const [isLoading, setIsLoading] = useState<boolean>(true)
-    const {appwrite, isLoggedIn,setIsLoggedIn} = useContext(AppwriteContext)
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const { appwrite, isLoggedIn, setIsLoggedIn } = useContext(AppwriteContext);
 
-    
     useEffect(() => {
-      appwrite
-      .getCurrentUser()
-      .then(response => {
-        setIsLoading(false)
-        if (response) {
-            setIsLoggedIn(true)
-        }
-      })
-      .catch(_ => {
-        setIsLoading(false)
-        setIsLoggedIn(false)
-      })
-    }, [appwrite, setIsLoggedIn])
-    
+        appwrite
+            .getCurrentUser()
+            .then(response => {
+                setIsLoading(false);
+                if (response) {
+                    setIsLoggedIn(true);
+                }
+            })
+            .catch(_ => {
+                setIsLoading(false);
+                setIsLoggedIn(false);
+            });
+    }, [appwrite, setIsLoggedIn]);
+
     if (isLoading) {
-        return <Loading />
+        return <Loading />;
     }
 
-    console.log(isLoggedIn ? 'Rendering AppStack' : 'Rendering AuthStack');
-    return isLoggedIn ? <AppStack /> : <AuthStack />;
+    console.log(isLoggedIn ? 'Navigating to Home' : 'Navigating to Login');
+    
+    return (
+        <NavigationContainer independent = {true}>
+            <RouteStack initialRoute = {isLoggedIn ? 'Home' : 'Login'} />
+        </NavigationContainer>
+    );
 }

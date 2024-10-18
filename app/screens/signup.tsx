@@ -1,20 +1,12 @@
 import { StyleSheet, Text, View, KeyboardAvoidingView, TextInput, Pressable } from 'react-native'
 import React, { useContext, useState } from 'react'
-
-//react native elements
-import { FAB } from '@rneui/themed'
-//Snackbar from react-native-paper
 import { Snackbar } from 'react-native-paper'
-
-//context API
 import { AppwriteContext } from '../appwrite/appwritecontext'
-
-// Navigation
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { AuthStackParamList } from '../Routes/Auth';
+import { RouteParamList } from '../Routes/path';
 
 
-type SignupScreenProps = NativeStackScreenProps<AuthStackParamList, 'Signup'>
+type SignupScreenProps = NativeStackScreenProps<RouteParamList, 'Signup'>
 
 const Signup = ({ navigation }: SignupScreenProps) => {
   const { appwrite, setIsLoggedIn } = useContext(AppwriteContext)
@@ -30,6 +22,7 @@ const Signup = ({ navigation }: SignupScreenProps) => {
     setSnackbarMessage(message);
     setSnackbarVisible(true);
   };
+
 
   const handleSignup = () => {
     if (
@@ -56,6 +49,7 @@ const Signup = ({ navigation }: SignupScreenProps) => {
           if (response) {
             setIsLoggedIn(true);
             showSnackbar('Signup successful!');
+            navigation.navigate('Home')
           }
         })
         .catch(e => {
@@ -71,7 +65,7 @@ const Signup = ({ navigation }: SignupScreenProps) => {
       behavior="padding"
       style={styles.container}>
       <View style={styles.formContainer}>
-        <Text style={styles.appName}>Appwrite Auth</Text>
+        <Text style={styles.appName}>News Pulse</Text>
 
         {/* Name */}
         <TextInput
@@ -163,78 +157,88 @@ const Signup = ({ navigation }: SignupScreenProps) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#f5f5f5',
   },
   formContainer: {
     justifyContent: 'center',
     alignContent: 'center',
     height: '100%',
+    paddingHorizontal: 30,
   },
   appName: {
-    color: '#f02e65',
-    fontSize: 40,
+    color: '#E91E63',
+    fontSize: 42,
     fontWeight: 'bold',
     alignSelf: 'center',
-    marginBottom: 20,
+    marginBottom: 30,
+    letterSpacing: 1.5,
   },
   input: {
-    backgroundColor: '#fef8fa',
-    padding: 10,
-    height: 40,
+    backgroundColor: '#ffffff',
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    height: 50,
     alignSelf: 'center',
-    borderRadius: 5,
-    width: '80%',
-    color: '#000000',
-    marginTop: 10,
+    borderRadius: 8,
+    width: '100%',
+    color: '#333333',
+    marginTop: 15,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.23,
-    shadowRadius: 2.62,
-    elevation: 1,
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
   errorText: {
-    color: 'red',
+    color: '#D32F2F',
     alignSelf: 'center',
     marginTop: 10,
+    fontSize: 14,
+    fontWeight: '600',
   },
   btn: {
-    backgroundColor: '#ffffff',
-    padding: 10,
-    height: 45,
+    backgroundColor: '#E91E63',
+    paddingVertical: 12,
     alignSelf: 'center',
-    borderRadius: 5,
-    width: '80%',
-    marginTop: 10,
+    borderRadius: 8,
+    width: '100%',
+    marginTop: 30,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.23,
-    shadowRadius: 2.62,
-    elevation: 3,
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
   },
   btnText: {
-    color: '#484848',
+    color: '#FFFFFF',
     alignSelf: 'center',
     fontWeight: 'bold',
     fontSize: 18,
+    letterSpacing: 1,
   },
   loginContainer: {
     marginTop: 60,
+    alignSelf: 'center',
   },
   haveAccountLabel: {
-    color: '#484848',
+    color: '#757575',
     alignSelf: 'center',
-    fontWeight: 'bold',
+    fontWeight: '500',
     fontSize: 15,
   },
   loginLabel: {
-    color: '#1d9bf0',
+    color: '#1E88E5',
+    fontWeight: 'bold',
   },
 });
+
 
 export default Signup;
