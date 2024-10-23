@@ -31,7 +31,7 @@ const Login = ({ navigation }: LoginScreenProps) => {
         .then((response) => {
           if (response) {
             setIsLoggedIn(true);
-            navigation.navigate('Home')
+            navigation.replace('TabNav')
             showSnackbar('Login Success');
           }
         })
@@ -89,8 +89,13 @@ const Login = ({ navigation }: LoginScreenProps) => {
             <Text style={styles.signUpLabel}>Create an account</Text>
           </Text>
         </Pressable>
-      </View>
 
+        <Text style={styles.passwordRecoveryText}>
+          Forgot your password? Contact us at  
+        <Text style={styles.emailHighlight}> Newspulse@gmail.com</Text>.
+        </Text>
+
+        </View>
       {/* React Native Paper Snackbar */}
       <Snackbar
         visible={snackbarVisible}
@@ -190,6 +195,22 @@ const styles = StyleSheet.create({
     color: '#1E88E5',
     fontWeight: 'bold',
   },
+  passwordRecoveryText: {
+    color: '#424242',
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 30,
+    lineHeight: 24,
+    fontWeight: '500',
+    letterSpacing: 0.5,
+  },
+  
+  emailHighlight: {
+    color: '#1976D2', 
+    fontWeight: '600',
+    fontSize: 16,
+    letterSpacing: 0.25,
+  }
 });
 
 

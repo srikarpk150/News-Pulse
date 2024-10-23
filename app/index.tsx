@@ -4,6 +4,7 @@ import Loading from '../components/loading';
 import { NavigationContainer } from '@react-navigation/native';
 import { RouteStack } from './Routes/path';
 
+
 export default function App() {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const { appwrite, isLoggedIn, setIsLoggedIn } = useContext(AppwriteContext);

@@ -1,10 +1,10 @@
-import { StyleSheet, Text, View, SafeAreaView, Image, ScrollView  } from 'react-native'
+import { StyleSheet, Text, View, SafeAreaView, ScrollView, Pressable  } from 'react-native'
 import React, { useContext, useState, useEffect } from 'react'
-import { FAB } from '@rneui/themed'
 import {AppwriteContext} from '../appwrite/appwritecontext'
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RouteParamList } from '../Routes/path';
 import NewsService from '../newsapi/apicalls';
+
 
 type HomeScreenProps = NativeStackScreenProps<RouteParamList, 'Home'>
 
@@ -24,22 +24,7 @@ const Home = ({ navigation }: HomeScreenProps) => {
   const [userData, setUserData] = useState<UserObj>()
   const [newsData, setNewsData] = useState<NewsArticle[]>([]);
   const {appwrite, setIsLoggedIn} = useContext(AppwriteContext)
-  const [snackbarVisible, setSnackbarVisible] = useState(false)
-  const [snackbarMessage, setSnackbarMessage] = useState('')
-  
-  const showSnackbar = (message: string) => {
-    setSnackbarMessage(message);
-    setSnackbarVisible(true);
-  };
 
-  const handleLogout = () => {
-    appwrite.logout(showSnackbar)
-    .then(() => {
-      setIsLoggedIn(false);
-      showSnackbar('Logout Successful');
-      navigation.navigate('Login')
-    })
-  }
 
   useEffect(() => {
     appwrite.getCurrentUser()
@@ -49,6 +34,7 @@ const Home = ({ navigation }: HomeScreenProps) => {
           name: response.name,
           email: response.email
         }
+        setIsLoggedIn(true);
         setUserData(user)
       }
     })
@@ -69,48 +55,51 @@ const Home = ({ navigation }: HomeScreenProps) => {
 }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.message}>NEWS PULSE</Text>
-        
-        {/* User Details */}
-        {userData && (
-          <View style={styles.userContainer}>
-            <Text style={styles.userDetails}>Name: {userData.name}</Text>
-            <Text style={styles.userDetails}>Email: {userData.email}</Text>
-          </View>
-        )}
+<SafeAreaView style={styles.container}>
+      <View style={styles.contentWrapper}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <Text style={styles.message}>NEWS PULSE</Text>
 
-        <View style={styles.newsContainer}>
-          {newsData.slice(0, 20).map((article, index) => (
-            <View key={index} style={styles.articleContainer}>
-              <Text style={styles.articleTitle}>{article.title}</Text>
-              <Text style={styles.articleDescription}>{article.description}</Text>
-              <Text style={styles.articleDate}>Published on: {new Date(article.publishedAt).toLocaleDateString()}</Text>
+          {/* User Details */}
+          {userData && (
+            <View style={styles.userContainer}>
+              <Text style={styles.userDetails}>Name: {userData.name}</Text>
+              <Text style={styles.userDetails}>Email: {userData.email}</Text>
             </View>
-          ))}
-        </View>
+          )}
 
-      </ScrollView>
-
-      {/* Logout Button */}
-      <FAB
-        color="#f02e65"
-        size="large"
-        title="Logout"
-        icon={{ name: 'logout', color: '#FFFFFF' }}
-        onPress={handleLogout}
-        style={styles.fab}
-      />
+          <View style={styles.newsContainer}>
+            {newsData.slice(0, 20).map((article, index) => (
+              <Pressable
+                key={index}
+                style={styles.articleContainer}
+                onPress={() =>
+                  navigation.navigate('Detail', {
+                    article,
+                  })
+                }
+              >
+                <Text style={styles.articleTitle}>{article.title}</Text>
+                <Text style={styles.articleDescription}>{article.description}</Text>
+                <Text style={styles.articleDate}>
+                  Published on: {new Date(article.publishedAt).toLocaleDateString()}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
-  
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0B0D32',
+  },
+  contentWrapper: {
+    flex: 1, 
   },
   scrollContent: {
     paddingVertical: 20,

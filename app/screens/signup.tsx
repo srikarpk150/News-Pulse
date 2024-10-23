@@ -49,7 +49,7 @@ const Signup = ({ navigation }: SignupScreenProps) => {
           if (response) {
             setIsLoggedIn(true);
             showSnackbar('Signup successful!');
-            navigation.navigate('Home')
+            navigation.replace('TabNav')
           }
         })
         .catch(e => {

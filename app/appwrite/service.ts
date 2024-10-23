@@ -35,7 +35,7 @@ class AppwriteService {
         return userAccount;
       }
     } catch (error) {
-      showSnackbar(String(error)); // Show Snackbar on error
+      showSnackbar(String(error));
       console.log('Appwrite service :: createAccount() :: ' + error);
     }
   }
@@ -45,7 +45,7 @@ class AppwriteService {
       return await this.account.createEmailPasswordSession(email, password);
     } catch (error) {
       showSnackbar('Login failed');
-      showSnackbar(String(error)); // Show Snackbar on error
+      showSnackbar(String(error));
       console.log('Appwrite service :: loginAccount() :: ' + error);
     }
   }
