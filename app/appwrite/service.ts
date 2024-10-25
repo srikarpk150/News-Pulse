@@ -15,6 +15,7 @@ type LoginUserAccount = {
   password: string;
 };
 
+
 class AppwriteService {
   account;
 
@@ -58,11 +59,27 @@ class AppwriteService {
     }
   }
 
+  async updateUserName(name :string,showSnackbar: (message: string) => void) {
+    try {
+      return await this.account.updateName(name);
+    } catch (error) {
+      console.log('Appwrite service :: updateUserName() :: ' + error);
+    }
+  }
+
+  async updateUserEmail({ email, password }: LoginUserAccount,showSnackbar: (message: string) => void) {
+    try {
+      return await this.account.updateEmail(email,password)
+    } catch (error) {
+      console.log('Appwrite service :: updateUserEmail() :: ' + error);
+    }
+  }
+
   async logout(showSnackbar: (message: string) => void) {
     try {
       return await this.account.deleteSession('current');
     } catch (error) {
-      showSnackbar(String(error)); // Show Snackbar on error
+      showSnackbar(String(error)); 
       console.log('Appwrite service :: logout() :: ' + error);
     }
   }

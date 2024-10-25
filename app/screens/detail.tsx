@@ -20,7 +20,6 @@ const Detail = () => {
   );
 };
 
-// Define styles for the component
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -45,5 +44,5 @@ const styles = StyleSheet.create({
   },
 });
 
-// Export the Detail component
+
 export default Detail;

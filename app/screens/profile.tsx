@@ -1,123 +1,142 @@
-import { StyleSheet, Text, View, SafeAreaView, Image, ScrollView  } from 'react-native'
-import React, { useContext, useState, useEffect } from 'react'
-import { FAB } from '@rneui/themed'
-import {AppwriteContext} from '../appwrite/appwritecontext'
+import { StyleSheet, Text, View, SafeAreaView, TextInput, TouchableOpacity } from 'react-native';
+import React, { useContext, useState, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { AppwriteContext } from '../appwrite/appwritecontext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RouteParamList } from '../Routes/path';
-import NewsService from '../newsapi/apicalls';
-import TabNav from '../Routes/bottomnav';
 
 type HomeScreenProps = NativeStackScreenProps<RouteParamList, 'Profile'>
 
 type UserObj = {
-  name: String;
-  email: String;
+  name: string;
+  email: string;
+  password: string
 }
 
-type NewsArticle = {
-  title: string;
-  description: string;
-  url: string;
-  publishedAt: string;
-};
-
 const Profile = ({ navigation }: HomeScreenProps) => {
-  const [userData, setUserData] = useState<UserObj>()
-  const [newsData, setNewsData] = useState<NewsArticle[]>([]);
-  const {appwrite, setIsLoggedIn} = useContext(AppwriteContext)
-  const [snackbarVisible, setSnackbarVisible] = useState(false)
-  const [snackbarMessage, setSnackbarMessage] = useState('')
-  
+  const [userData, setUserData] = useState<UserObj>({ name: '', email: '', password: '' });
+  const [error, setError] = useState<string>('');
+  const [isEmailModified, setIsEmailModified] = useState<boolean>(false);
+  const { appwrite, setIsLoggedIn } = useContext(AppwriteContext);
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+
   const showSnackbar = (message: string) => {
     setSnackbarMessage(message);
     setSnackbarVisible(true);
   };
 
-  const handleLogout = () => {
-    appwrite.logout(showSnackbar)
-    .then(() => {
-      setIsLoggedIn(false);
-      showSnackbar('Logout Successful');
-      navigation.navigate('Login')
-    })
-  }
+  const handleUpdateUserName = () => {
+    appwrite.updateUserName(userData.name, showSnackbar)
+      .then((response) => {
+        if (response) {
+          showSnackbar('Profile updated successfully');
+        }
+      })
+      .catch(e => {
+        console.log(e);
+        setError('Failed to update profile');
+        showSnackbar('Failed to update profile');
+      });
+  };
 
-  useEffect(() => {
-    appwrite.getCurrentUser()
-    .then(response => {
-      if (response) {
-        const user: UserObj = {
-          name: response.name,
-          email: response.email
+  const handleUpdateUserEmail = () => {
+    const updatedUserData = {
+      email: userData.email,
+      password: userData.password
+    };
+    appwrite.updateUserEmail(updatedUserData, showSnackbar)
+      .then((response) => {
+        if (response) {
+          showSnackbar('Profile updated successfully');
         }
-        setIsLoggedIn(true);
-        setUserData(user)
-      }
-    })
-  }, [appwrite])
-  
-  useEffect(() => {
-    (async () => {
-        console.log("Fetching news...");
-        const newsService = new NewsService();
-        try {
-            const response = await newsService.getNewsFromAPI();
-            if (response && response.articles) {
-              setNewsData(response.articles);}
-        } catch (error) {
-            console.log("Failed to fetch news:", error);
-        }
-    })();
-}, []);
+      })
+      .catch(e => {
+        console.log(e);
+        setError('Failed to update profile');
+        showSnackbar('Failed to update profile');
+      });
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      appwrite.getCurrentUser()
+        .then(response => {
+          if (response) {
+            const user: UserObj = {
+              name: response.name,
+              email: response.email,
+              password: ''
+            };
+            setIsLoggedIn(true);
+            setUserData(user);
+          }
+        });
+    }, [appwrite])
+  );
 
   return (
-<SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.contentWrapper}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <Text style={styles.message}>NEWS PULSE</Text>
+        <Text style={styles.message}>NEWS PULSE</Text>
 
-          {/* User Details */}
-          {userData && (
-            <View style={styles.userContainer}>
-              <Text style={styles.userDetails}>Name: {userData.name}</Text>
-              <Text style={styles.userDetails}>Email: {userData.email}</Text>
-            </View>
+        <View style={styles.userContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Name"
+            placeholderTextColor="#C0C0C0"
+            value={userData.name}
+            onChangeText={(text) => setUserData({ ...userData, name: text })}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor="#C0C0C0"
+            value={userData.email}
+            onChangeText={(text) => {
+              setUserData({ ...userData, email: text });
+              setIsEmailModified(true);
+            }}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          {isEmailModified && (
+            <>
+              <Text style={styles.infoText}>
+                Please enter your current password to update your email address.
+              </Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Password"
+                placeholderTextColor="#C0C0C0"
+                value={userData.password}
+                onChangeText={(text) => setUserData({ ...userData, password: text })}
+                secureTextEntry={true}
+              />
+            </>
           )}
-
-          <View style={styles.newsContainer}>
-            {newsData.slice(0, 20).map((article, index) => (
-              <View key={index} style={styles.articleContainer}>
-                <Text style={styles.articleTitle}>{article.title}</Text>
-                <Text style={styles.articleDescription}>{article.description}</Text>
-                <Text style={styles.articleDate}>Published on: {new Date(article.publishedAt).toLocaleDateString()}</Text>
-              </View>
-            ))}
-          </View>
-        </ScrollView>
-
-        {/* Logout Button */}
-        <FAB
-          color="#f02e65"
-          size="large"
-          title="Logout"
-          icon={{ name: 'logout', color: '#FFFFFF' }}
-          onPress={handleLogout}
-          style={styles.fab}
-        />
+          <TouchableOpacity style={styles.updateButton} onPress={() => {
+            handleUpdateUserName();
+            handleUpdateUserEmail();
+          }}>
+            <Text style={styles.updateButtonText}>Update Profile</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.resetButton} onPress={() => showSnackbar('Password reset functionality coming soon!')}>
+            <Text style={styles.resetButtonText}>Reset Password</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-
-      {/* Tab Navigation */}
     </SafeAreaView>
   );
-};
 
+}
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0B0D32',
   },
   contentWrapper: {
-    flex: 1, 
+    flex: 1,
   },
   scrollContent: {
     paddingVertical: 20,
@@ -139,9 +158,44 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
-  userDetails: {
-    fontSize: 18,
+  input: {
+    backgroundColor: '#2A2D47',
     color: '#FFFFFF',
+    width: '100%',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  infoText: {
+    color: '#C0C0C0',
+    fontSize: 14,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  updateButton: {
+    backgroundColor: '#4287f5',
+    padding: 12,
+    borderRadius: 8,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  updateButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  resetButton: {
+    backgroundColor: '#f02e65',
+    padding: 12,
+    borderRadius: 8,
+    width: '100%',
+    alignItems: 'center',
+  },
+  resetButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   newsContainer: {
     width: '100%',
