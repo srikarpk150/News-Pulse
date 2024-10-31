@@ -3,11 +3,29 @@ import { AppwriteContext } from './appwrite/appwritecontext';
 import Loading from '../components/loading';
 import { NavigationContainer } from '@react-navigation/native';
 import { RouteStack } from './Routes/path';
+import * as Font from 'expo-font';
 
 
 export default function App() {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const { appwrite, isLoggedIn, setIsLoggedIn } = useContext(AppwriteContext);
+    const [fontsLoaded, setFontsLoaded] = useState(false);
+
+    useEffect(() => {
+      const loadFonts = async () => {
+        try {
+          await Font.loadAsync({
+            'TimesNewRoman': require('../assets/fonts/TimesNewRoman.ttf'),
+          });
+          setFontsLoaded(true);
+        } catch (e) {
+          console.error(e);
+        }
+      };
+  
+      loadFonts();
+    }, []);
+    
 
     useEffect(() => {
         appwrite

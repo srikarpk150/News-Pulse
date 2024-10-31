@@ -1,9 +1,11 @@
-import { StyleSheet, Text, View, SafeAreaView, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, TextInput, TouchableOpacity, Image } from 'react-native';
 import React, { useContext, useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { AppwriteContext } from '../appwrite/appwritecontext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RouteParamList } from '../Routes/path';
+import Title from '@/components/title';
+import { Ionicons } from '@expo/vector-icons';
 
 type HomeScreenProps = NativeStackScreenProps<RouteParamList, 'Profile'>
 
@@ -15,7 +17,6 @@ type UserObj = {
 
 const Profile = ({ navigation }: HomeScreenProps) => {
   const [userData, setUserData] = useState<UserObj>({ name: '', email: '', password: '' });
-  const [error, setError] = useState<string>('');
   const [isEmailModified, setIsEmailModified] = useState<boolean>(false);
   const { appwrite, setIsLoggedIn } = useContext(AppwriteContext);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
@@ -35,7 +36,6 @@ const Profile = ({ navigation }: HomeScreenProps) => {
       })
       .catch(e => {
         console.log(e);
-        setError('Failed to update profile');
         showSnackbar('Failed to update profile');
       });
   };
@@ -53,7 +53,6 @@ const Profile = ({ navigation }: HomeScreenProps) => {
       })
       .catch(e => {
         console.log(e);
-        setError('Failed to update profile');
         showSnackbar('Failed to update profile');
       });
   };
@@ -77,10 +76,17 @@ const Profile = ({ navigation }: HomeScreenProps) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.contentWrapper}>
-        <Text style={styles.message}>NEWS PULSE</Text>
+      <View style={styles.header}>
+        <Ionicons name="arrow-back" size={24} color="#FFFFFF" onPress={() => navigation.goBack()} />
+      </View>
 
-        <View style={styles.userContainer}>
+      <View style={styles.profileImageContainer}>
+      <Image source={{ uri: `https://robohash.org/${userData.email}` }} style={styles.profileImage} />
+      </View>
+
+      <View style={styles.formContainer}>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>NAME</Text>
           <TextInput
             style={styles.input}
             placeholder="Name"
@@ -88,6 +94,9 @@ const Profile = ({ navigation }: HomeScreenProps) => {
             value={userData.name}
             onChangeText={(text) => setUserData({ ...userData, name: text })}
           />
+        </View>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>EMAIL</Text>
           <TextInput
             style={styles.input}
             placeholder="Email"
@@ -101,137 +110,92 @@ const Profile = ({ navigation }: HomeScreenProps) => {
             autoCapitalize="none"
           />
           {isEmailModified && (
-            <>
-              <Text style={styles.infoText}>
-                Please enter your current password to update your email address.
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Password"
-                placeholderTextColor="#C0C0C0"
-                value={userData.password}
-                onChangeText={(text) => setUserData({ ...userData, password: text })}
-                secureTextEntry={true}
-              />
-            </>
+            <Text style={styles.infoMessage}>
+              Please enter your password to update the email.
+            </Text>
           )}
-          <TouchableOpacity style={styles.updateButton} onPress={() => {
-            handleUpdateUserName();
-            handleUpdateUserEmail();
-          }}>
-            <Text style={styles.updateButtonText}>Update Profile</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.resetButton} onPress={() => showSnackbar('Password reset functionality coming soon!')}>
-            <Text style={styles.resetButtonText}>Reset Password</Text>
-          </TouchableOpacity>
         </View>
+        {isEmailModified && (
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>PASSWORD</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter password"
+              placeholderTextColor="#C0C0C0"
+              value={userData.password}
+              onChangeText={(text) => setUserData({ ...userData, password: text })}
+              secureTextEntry={true}
+            />
+          </View>
+        )}
+        <TouchableOpacity style={styles.updateButton} onPress={() => {
+          handleUpdateUserName();
+          handleUpdateUserEmail();
+        }}>
+          <Text style={styles.updateButtonText}>SAVE CHANGES</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
-
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0B0D32',
+    backgroundColor: '#121212',
+    paddingHorizontal: 20,
   },
-  contentWrapper: {
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 15,
+  },
+  profileImageContainer: {
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  formContainer: {
     flex: 1,
   },
-  scrollContent: {
-    paddingVertical: 20,
-    paddingHorizontal: 16,
-    alignItems: 'center',
+  inputGroup: {
+    marginBottom: 15,
   },
-  message: {
-    fontSize: 26,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    marginVertical: 16,
-  },
-  userContainer: {
-    backgroundColor: '#1C1F3D',
-    padding: 16,
-    borderRadius: 8,
-    width: '100%',
-    alignItems: 'center',
-    marginBottom: 24,
+  label: {
+    color: '#A9A9A9',
+    fontSize: 12,
+    marginBottom: 5,
   },
   input: {
-    backgroundColor: '#2A2D47',
+    backgroundColor: '#1E1E1E',
     color: '#FFFFFF',
     width: '100%',
-    padding: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     borderRadius: 8,
-    marginBottom: 12,
+    elevation: 2,
   },
-  infoText: {
-    color: '#C0C0C0',
-    fontSize: 14,
-    marginBottom: 8,
-    textAlign: 'center',
+  infoMessage: {
+    color: '#FF4500',
+    fontSize: 12,
+    marginBottom: 10,
   },
   updateButton: {
-    backgroundColor: '#4287f5',
-    padding: 12,
+    backgroundColor: '#FF4500',
+    paddingVertical: 12,
     borderRadius: 8,
-    width: '100%',
     alignItems: 'center',
-    marginBottom: 10,
+    marginTop: 20,
+    elevation: 6,
   },
   updateButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
-  },
-  resetButton: {
-    backgroundColor: '#f02e65',
-    padding: 12,
-    borderRadius: 8,
-    width: '100%',
-    alignItems: 'center',
-  },
-  resetButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  newsContainer: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  articleContainer: {
-    backgroundColor: '#1C1F3D',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 20,
-    width: '100%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 3,
-    elevation: 4,
-  },
-  articleTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 6,
-  },
-  articleDescription: {
-    fontSize: 16,
-    color: '#C0C0C0',
-  },
-  articleDate: {
-    fontSize: 14,
-    color: '#A9A9A9',
-    marginTop: 8,
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 30,
-    right: 20,
   },
 });
 

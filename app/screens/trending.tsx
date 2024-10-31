@@ -1,6 +1,5 @@
 import { StyleSheet, Text, View, SafeAreaView, Image, ScrollView  } from 'react-native'
 import React, { useContext, useState, useEffect } from 'react'
-import { FAB } from '@rneui/themed'
 import {AppwriteContext} from '../appwrite/appwritecontext'
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RouteParamList } from '../Routes/path';
@@ -58,7 +57,6 @@ const Trending = ({ navigation }: HomeScreenProps) => {
   
   useEffect(() => {
     (async () => {
-        console.log("Fetching news...");
         const newsService = new NewsService();
         try {
             const response = await newsService.getNewsFromAPI();
@@ -94,16 +92,6 @@ const Trending = ({ navigation }: HomeScreenProps) => {
             ))}
           </View>
         </ScrollView>
-
-        {/* Logout Button */}
-        <FAB
-          color="#f02e65"
-          size="large"
-          title="Logout"
-          icon={{ name: 'logout', color: '#FFFFFF' }}
-          onPress={handleLogout}
-          style={styles.fab}
-        />
       </View>
     </SafeAreaView>
   );
@@ -171,11 +159,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#A9A9A9',
     marginTop: 8,
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 30,
-    right: 20,
   },
 });
 

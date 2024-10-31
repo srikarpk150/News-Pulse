@@ -26,6 +26,7 @@ export type RouteParamList = {
   Browse: undefined;
   Logout: undefined;
   TabNav: undefined;
+  HomeScreen: undefined;
   Detail: { article: NewsArticle }
 };
 

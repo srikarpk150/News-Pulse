@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Trending from '../screens/trending';
 import Profile from '../screens/profile';
 import Browse from '../screens/browse';
-import {HomeStackNavigator} from './homnav'
+import { HomeStackNavigator } from './homnav';
 import { AppwriteContext } from '../appwrite/appwritecontext';
 import { RouteParamList } from '../Routes/path';
 import { CompositeScreenProps } from '@react-navigation/native';
@@ -22,6 +22,7 @@ export default function TabNav({ navigation }: TabNavProps) {
   const { appwrite, setIsLoggedIn } = useContext(AppwriteContext);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const LogoutComponent = () => null;
 
   const showSnackbar = (message: string) => {
     setSnackbarMessage(message);
@@ -38,6 +39,7 @@ export default function TabNav({ navigation }: TabNavProps) {
 
   return (
     <Tab.Navigator
+    initialRouteName="HomeScreen"
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName:
@@ -48,7 +50,7 @@ export default function TabNav({ navigation }: TabNavProps) {
             | "exit" | "exit-outline" = "home-outline";
 
           switch (route.name) {
-            case 'Home':
+            case 'HomeScreen':
               iconName = focused ? 'home' : 'home-outline';
               break;
             case 'Trending':
@@ -67,32 +69,32 @@ export default function TabNav({ navigation }: TabNavProps) {
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#f02e65',
-        tabBarInactiveTintColor: '#a9a9a9',
+        tabBarActiveTintColor: '#FF4500',
+        tabBarInactiveTintColor: '#A9A9A9',
         tabBarStyle: {
-          backgroundColor: '#1C1F3D',
-          paddingBottom: 5,
-          height: 60,
+          backgroundColor: '#121212',
+          paddingBottom: 10,
+          height: 70,
           borderTopWidth: 0,
           shadowColor: '#000',
-          shadowOpacity: 0.25,
+          shadowOpacity: 0.3,
           shadowRadius: 5,
-          elevation: 5,
+          elevation: 8,
         },
         tabBarLabelStyle: {
-          fontSize: 14,
-          fontWeight: '600',
+          fontSize: 10,
+          fontWeight: '500',
         },
         headerShown: false,
       })}
     >
-      <Tab.Screen name="Home" component={HomeStackNavigator} />
-      <Tab.Screen name="Trending" component={Trending} />
       <Tab.Screen name="Profile" component={Profile} />
       <Tab.Screen name="Browse" component={Browse} />
+      <Tab.Screen name="HomeScreen" component={HomeStackNavigator} />
+      <Tab.Screen name="Trending" component={Trending} />
       <Tab.Screen
         name="Logout"
-        component={() => null}
+        component={LogoutComponent}
         listeners={{
           tabPress: (e) => {
             e.preventDefault();
@@ -101,5 +103,6 @@ export default function TabNav({ navigation }: TabNavProps) {
         }}
       />
     </Tab.Navigator>
+
   );
 }

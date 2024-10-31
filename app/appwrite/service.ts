@@ -1,4 +1,4 @@
-import { ID, Account, Client } from 'appwrite';
+import { ID, Account, Client, Databases, Query } from 'appwrite';
 
 const appwriteClient = new Client();
 
@@ -14,15 +14,20 @@ type LoginUserAccount = {
   email: string;
   password: string;
 };
-
+type ResetPassword = {
+  oldPassword: string;
+  newPassword: string;
+};
 
 class AppwriteService {
-  account;
+  account: Account;
+  databases: Databases; 
 
   constructor() {
     appwriteClient.setEndpoint(APPWRITE_ENDPOINT).setProject(APPWRITE_PROJECT_ID);
 
     this.account = new Account(appwriteClient);
+    this.databases = new Databases(appwriteClient);
   }
 
   // Create a new user inside Appwrite
@@ -59,7 +64,7 @@ class AppwriteService {
     }
   }
 
-  async updateUserName(name :string,showSnackbar: (message: string) => void) {
+  async updateUserName(name: string, showSnackbar: (message: string) => void) {
     try {
       return await this.account.updateName(name);
     } catch (error) {
@@ -67,11 +72,19 @@ class AppwriteService {
     }
   }
 
-  async updateUserEmail({ email, password }: LoginUserAccount,showSnackbar: (message: string) => void) {
+  async updateUserEmail({ email, password }: LoginUserAccount, showSnackbar: (message: string) => void) {
     try {
-      return await this.account.updateEmail(email,password)
+      return await this.account.updateEmail(email, password);
     } catch (error) {
       console.log('Appwrite service :: updateUserEmail() :: ' + error);
+    }
+  }
+
+  async resetUserPassword({ oldPassword, newPassword }: ResetPassword, showSnackbar: (message: string) => void) {
+    try {
+      return await this.account.updatePassword(newPassword, oldPassword);
+    } catch (error) {
+      console.log('Appwrite service :: resetUserPassword() :: ' + error);
     }
   }
 
@@ -79,10 +92,47 @@ class AppwriteService {
     try {
       return await this.account.deleteSession('current');
     } catch (error) {
-      showSnackbar(String(error)); 
+      showSnackbar(String(error));
       console.log('Appwrite service :: logout() :: ' + error);
     }
   }
+
+  async createpreferences({ userid, categories }: { userid: string, categories: { interested_categories: string[] } },showSnackbar: (message: string) => void) {
+    try {
+        const response = await this.databases.createDocument('671efa3b00309d311500','671efa500009f2d5adee',ID.unique(),{userid: userid,interested_categories: categories.interested_categories},[`read("user:${userid}")`, `write("user:${userid}")`] );
+        return response;
+    } catch (error) {
+        showSnackbar(String(error));
+        console.log('Appwrite service :: createpreferences() :: ' + error);
+    }
+  }
+
+  async savepreferences({ documentid, userid, categories }: { documentid: string, userid: string, categories: { interested_categories: string[] } },showSnackbar: (message: string) => void) {
+    try {
+        const response = await this.databases.updateDocument('671efa3b00309d311500','671efa500009f2d5adee', documentid,{userid: userid,interested_categories: categories.interested_categories},[`read("user:${userid}")`, `write("user:${userid}")`]);
+        return response;
+    } catch (error) {
+        showSnackbar(String(error));
+        console.log('Appwrite service :: savepreferences() :: ' + error);
+    }
+}
+
+
+async getpreferences({ userid }: { userid: string },showSnackbar: (message: string) => void) {
+  try {
+      const result = await this.databases.listDocuments('671efa3b00309d311500','671efa500009f2d5adee',[Query.equal("userid", userid)]);
+      if (result.documents.length > 0) {
+          return result.documents[0];
+      } else {
+          showSnackbar("No preferences found for this user.");
+          return null;
+      }
+    } catch (error) {
+        showSnackbar(String(error));
+        console.log('Appwrite service :: getpreferences() :: ' + error);
+    }
+  }
+
 }
 
 export default AppwriteService;
