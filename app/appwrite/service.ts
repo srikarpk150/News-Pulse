@@ -117,7 +117,6 @@ class AppwriteService {
     }
 }
 
-
 async getpreferences({ userid }: { userid: string },showSnackbar: (message: string) => void) {
   try {
       const result = await this.databases.listDocuments('671efa3b00309d311500','671efa500009f2d5adee',[Query.equal("userid", userid)]);

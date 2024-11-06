@@ -12,12 +12,14 @@ type HomeScreenProps = NativeStackScreenProps<RouteParamList, 'Profile'>
 type UserObj = {
   name: string;
   email: string;
-  password: string
+  password: string;
 }
 
 const Profile = ({ navigation }: HomeScreenProps) => {
   const [userData, setUserData] = useState<UserObj>({ name: '', email: '', password: '' });
   const [isEmailModified, setIsEmailModified] = useState<boolean>(false);
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const { appwrite, setIsLoggedIn } = useContext(AppwriteContext);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -57,6 +59,21 @@ const Profile = ({ navigation }: HomeScreenProps) => {
       });
   };
 
+  const handleResetPassword = () => {
+    appwrite.resetUserPassword({oldPassword, newPassword}, showSnackbar)
+      .then((response) => {
+        if (response) {
+          showSnackbar('Password updated successfully');
+          setOldPassword('');
+          setNewPassword('');
+        }
+      })
+      .catch(e => {
+        console.log(e);
+        showSnackbar('Failed to update password');
+      });
+  };
+
   useFocusEffect(
     useCallback(() => {
       appwrite.getCurrentUser()
@@ -81,7 +98,7 @@ const Profile = ({ navigation }: HomeScreenProps) => {
       </View>
 
       <View style={styles.profileImageContainer}>
-      <Image source={{ uri: `https://robohash.org/${userData.email}` }} style={styles.profileImage} />
+        <Image source={{ uri: `https://robohash.org/${userData.email}` }} style={styles.profileImage} />
       </View>
 
       <View style={styles.formContainer}>
@@ -128,6 +145,34 @@ const Profile = ({ navigation }: HomeScreenProps) => {
             />
           </View>
         )}
+
+        {/* Reset Password Section */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>OLD PASSWORD</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter old password"
+            placeholderTextColor="#C0C0C0"
+            value={oldPassword}
+            onChangeText={setOldPassword}
+            secureTextEntry={true}
+          />
+        </View>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>NEW PASSWORD</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter new password"
+            placeholderTextColor="#C0C0C0"
+            value={newPassword}
+            onChangeText={setNewPassword}
+            secureTextEntry={true}
+          />
+        </View>
+        <TouchableOpacity style={styles.updateButton} onPress={handleResetPassword}>
+          <Text style={styles.updateButtonText}>RESET PASSWORD</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity style={styles.updateButton} onPress={() => {
           handleUpdateUserName();
           handleUpdateUserEmail();
@@ -137,7 +182,7 @@ const Profile = ({ navigation }: HomeScreenProps) => {
       </View>
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {

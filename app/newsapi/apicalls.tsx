@@ -53,5 +53,24 @@ class NewsService {
             console.error('NewsService :: getCategoryNewsFromAPI() :: ', error);
         }
     }
+
+    async getSportsNewsFromAPI(selectedCategories: Array<string>) {
+        try {
+            const apiKey: string = process.env.EXPO_PUBLIC_API_Key!;
+    
+            const results: Record<string, any[]> = {};
+
+        for (const category of selectedCategories) {
+            const mappedCategory = categoryMapping[category] || category;
+            const url = `everything?q=${mappedCategory}&apiKey=${apiKey}`;
+            
+            const response = await this.apiClient.get(url);
+            results[category] = response.data.articles.filter((article: any) => article.urlToImage).slice(0, 10);
+        }
+        return results;
+        } catch (error) {
+            console.error('NewsService :: getCategoryNewsFromAPI() :: ', error);
+        }
+    }
 } 
 export default NewsService;
