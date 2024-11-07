@@ -1,93 +1,92 @@
-import { StyleSheet, Text, View, SafeAreaView, Image, ScrollView  } from 'react-native'
-import React, { useContext, useState, useEffect } from 'react'
-import {AppwriteContext} from '../appwrite/appwritecontext'
+import { StyleSheet, Text, View, SafeAreaView, ScrollView, Image } from 'react-native';
+import React, { useContext, useState, useEffect } from 'react';
+import { AppwriteContext } from '../appwrite/appwritecontext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RouteParamList } from '../Routes/path';
 import NewsService from '../newsapi/apicalls';
-import TabNav from '../Routes/bottomnav';
 
-type HomeScreenProps = NativeStackScreenProps<RouteParamList, 'Trending'>
+type TrendingScreenProps = NativeStackScreenProps<RouteParamList, 'Trending'>;
 
 type UserObj = {
-  name: String;
-  email: String;
-}
+  name: string;
+  email: string;
+};
 
 type NewsArticle = {
   title: string;
   description: string;
   url: string;
   publishedAt: string;
+  urlToImage?: string;
 };
 
-const Trending = ({ navigation }: HomeScreenProps) => {
-  const [userData, setUserData] = useState<UserObj>()
-  const [newsData, setNewsData] = useState<NewsArticle[]>([]);
-  const {appwrite, setIsLoggedIn} = useContext(AppwriteContext)
-  const [snackbarVisible, setSnackbarVisible] = useState(false)
-  const [snackbarMessage, setSnackbarMessage] = useState('')
-  
-  const showSnackbar = (message: string) => {
-    setSnackbarMessage(message);
-    setSnackbarVisible(true);
-  };
-
-  const handleLogout = () => {
-    appwrite.logout(showSnackbar)
-    .then(() => {
-      setIsLoggedIn(false);
-      showSnackbar('Logout Successful');
-      navigation.navigate('Login')
-    })
-  }
+const Trending = ({ navigation }: TrendingScreenProps) => {
+  const [userData, setUserData] = useState<UserObj>();
+  const [newsData, setNewsData] = useState<Record<string, NewsArticle[]>>({});
+  const { appwrite, setIsLoggedIn } = useContext(AppwriteContext);
 
   useEffect(() => {
     appwrite.getCurrentUser()
-    .then(response => {
-      if (response) {
-        const user: UserObj = {
-          name: response.name,
-          email: response.email
+      .then(response => {
+        if (response) {
+          setIsLoggedIn(true);
+          setUserData({
+            name: response.name,
+            email: response.email
+          });
         }
-        setIsLoggedIn(true);
-        setUserData(user)
-      }
-    })
-  }, [appwrite])
-  
+      });
+  }, [appwrite]);
+
   useEffect(() => {
-    (async () => {
-        const newsService = new NewsService();
-        try {
-            const response = await newsService.getNewsFromAPI();
-            if (response && response.articles) {
-              setNewsData(response.articles);}
-        } catch (error) {
-            console.log("Failed to fetch news:", error);
+    const fetchNewsData = async () => {
+      const newsService = new NewsService();
+      const categoryData: Record<string, NewsArticle[]> = {};
+
+      try {
+        const response = await newsService.getTrendingNewsFromAPI();
+        if (response) {
+          for (const [category, articles] of Object.entries(response)) {
+            categoryData[category] = articles.slice(0, 20);
+          }
         }
-    })();
-}, []);
+        setNewsData(categoryData);
+      } catch (error) {
+        console.log("Failed to fetch news:", error);
+      }
+    };
+    fetchNewsData();
+  }, []);
 
   return (
-<SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.contentWrapper}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <Text style={styles.message}>NEWS PULSE</Text>
-
-          {/* User Details */}
-          {userData && (
-            <View style={styles.userContainer}>
-              <Text style={styles.userDetails}>Name: {userData.name}</Text>
-              <Text style={styles.userDetails}>Email: {userData.email}</Text>
-            </View>
-          )}
+          <Text style={styles.pageTitle}>Trending News</Text>
 
           <View style={styles.newsContainer}>
-            {newsData.slice(0, 20).map((article, index) => (
-              <View key={index} style={styles.articleContainer}>
-                <Text style={styles.articleTitle}>{article.title}</Text>
-                <Text style={styles.articleDescription}>{article.description}</Text>
-                <Text style={styles.articleDate}>Published on: {new Date(article.publishedAt).toLocaleDateString()}</Text>
+            {Object.keys(newsData).map((category) => (
+              <View key={category} style={styles.articleCategoryContainer}>
+                <Text style={styles.sectionTitle}>{category}</Text>
+                <ScrollView horizontal contentContainerStyle={styles.horizontalScrollContent}>
+                  {newsData[category].map((article, index) => (
+                    <View key={index} style={styles.articleContainer}>
+                      {article.urlToImage ? (
+                        <Image
+                          source={{ uri: encodeURI(article.urlToImage) }}
+                          style={styles.articleImageSmall}
+                          resizeMode="cover"
+                        />
+                      ) : null}
+                      <View style={styles.articleTextContainer}>
+                        <Text style={styles.articleTitle}>{article.title}</Text>
+                        <Text style={styles.articleDate}>
+                          Published on: {new Date(article.publishedAt).toLocaleDateString()}
+                        </Text>
+                      </View>
+                    </View>
+                  ))}
+                </ScrollView>
               </View>
             ))}
           </View>
@@ -100,65 +99,76 @@ const Trending = ({ navigation }: HomeScreenProps) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0B0D32',
+    backgroundColor: '#121212',  // Dark background
   },
   contentWrapper: {
     flex: 1, 
   },
   scrollContent: {
-    paddingVertical: 20,
-    paddingHorizontal: 16,
+    paddingVertical: 25,
+    paddingHorizontal: 18,
     alignItems: 'center',
   },
-  message: {
+  pageTitle: {
     fontSize: 26,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#FF4500',
     textAlign: 'center',
     marginVertical: 16,
   },
-  userContainer: {
-    backgroundColor: '#1C1F3D',
-    padding: 16,
-    borderRadius: 8,
-    width: '100%',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  userDetails: {
-    fontSize: 18,
-    color: '#FFFFFF',
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#FF4500',
+    marginBottom: 12,
   },
   newsContainer: {
     width: '100%',
     alignItems: 'center',
   },
-  articleContainer: {
-    backgroundColor: '#1C1F3D',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 20,
+  articleCategoryContainer: {
     width: '100%',
+    marginBottom: 24,
+  },
+  horizontalScrollContent: {
+    flexDirection: 'row',
+    paddingHorizontal: 10,
+  },
+  articleContainer: {
+    backgroundColor: 'rgba(18, 18, 18, 0.8)',
+    padding: 20,
+    borderRadius: 15,
+    marginHorizontal: 10,
+    width: 300,
+    flexDirection: 'column',
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 3,
-    elevation: 4,
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+    elevation: 6,
+  },
+  articleTextContainer: {
+    flex: 1,
+    marginTop: 10,
+  },
+  articleImageSmall: {
+    width: 180,
+    height: 100,
+    borderRadius: 8,
+    marginBottom: 10,
   },
   articleTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: 6,
-  },
-  articleDescription: {
-    fontSize: 16,
-    color: '#C0C0C0',
+    textAlign: 'center',
+    marginBottom: 8,
   },
   articleDate: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#A9A9A9',
-    marginTop: 8,
+    textAlign: 'center',
   },
 });
 

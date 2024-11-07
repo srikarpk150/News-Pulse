@@ -13,6 +13,14 @@ const categoryMapping: { [key: string]: string } = {
     "Listening and Community Events": "Community"
   };
 
+  const trendingMapping: string[] = [
+    'Sports',
+    'Entertainment',
+    'Technology',
+    'Health',
+    'Politics',
+  ];
+
 
 class NewsService {
     private apiClient:any;
@@ -54,22 +62,25 @@ class NewsService {
         }
     }
 
-    async getSportsNewsFromAPI(selectedCategories: Array<string>) {
+    async getTrendingNewsFromAPI() {
         try {
             const apiKey: string = process.env.EXPO_PUBLIC_API_Key!;
-    
             const results: Record<string, any[]> = {};
-
-        for (const category of selectedCategories) {
-            const mappedCategory = categoryMapping[category] || category;
-            const url = `everything?q=${mappedCategory}&apiKey=${apiKey}`;
-            
-            const response = await this.apiClient.get(url);
-            results[category] = response.data.articles.filter((article: any) => article.urlToImage).slice(0, 10);
-        }
-        return results;
+            for (const category of trendingMapping) {
+                const url = `https://newsapi.org/v2/top-headlines?q=${category}&pageSize=10&apiKey=${apiKey}`;
+                try {
+                    const response = await this.apiClient.get(url);
+                    results[category] = response.data.articles
+                        .filter((article: any) => article.urlToImage) 
+                        .slice(0, 10);
+                } catch (error) {
+                    console.error(`Failed to fetch news for category: ${category}`, error);
+                }
+            }
+            return results;
         } catch (error) {
-            console.error('NewsService :: getCategoryNewsFromAPI() :: ', error);
+            console.error('NewsService :: getTrendingNewsFromAPI() :: ', error);
+            return {};
         }
     }
 } 

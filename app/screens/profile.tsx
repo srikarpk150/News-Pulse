@@ -93,9 +93,7 @@ const Profile = ({ navigation }: HomeScreenProps) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Ionicons name="arrow-back" size={24} color="#FFFFFF" onPress={() => navigation.goBack()} />
-      </View>
+      
 
       <View style={styles.profileImageContainer}>
         <Image source={{ uri: `https://robohash.org/${userData.email}` }} style={styles.profileImage} />

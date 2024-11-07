@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   articleContainer: {
-    backgroundColor: '#1E1E2D',
+    backgroundColor: 'rgba(18, 18, 18, 0.8)',
     padding: 20,
     borderRadius: 15,
     marginHorizontal: 10,
