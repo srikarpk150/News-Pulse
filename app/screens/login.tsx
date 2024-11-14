@@ -1,11 +1,15 @@
 import { StyleSheet, Text, View, KeyboardAvoidingView, TextInput, Pressable } from 'react-native';
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect} from 'react';
 import { Snackbar } from 'react-native-paper';
 import { AppwriteContext } from '../appwrite/appwritecontext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RouteParamList } from '../Routes/path';
+import Title from '@/components/title';
+import * as SplashScreen from 'expo-splash-screen';
+import { useFonts } from 'expo-font';
 
 type LoginScreenProps = NativeStackScreenProps<RouteParamList, 'Login'>
+SplashScreen.preventAutoHideAsync();
 
 const Login = ({ navigation }: LoginScreenProps) => {
   const { appwrite, setIsLoggedIn } = useContext(AppwriteContext);
@@ -14,6 +18,21 @@ const Login = ({ navigation }: LoginScreenProps) => {
   const [password, setPassword] = useState<string>('');
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+
+  const [fontsLoaded] = useFonts({
+    TimesNewRoman: require('@/assets/fonts/TimesNewRoman.ttf'),
+  });
+  
+  useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) {
+    return null;
+  }
+
 
   const showSnackbar = (message: string) => {
     setSnackbarMessage(message);
@@ -45,7 +64,7 @@ const Login = ({ navigation }: LoginScreenProps) => {
   return (
     <KeyboardAvoidingView behavior="padding" style={styles.container}>
       <View style={styles.formContainer}>
-        <Text style={styles.appName}>News Pulse</Text>
+        <Title />
 
         <TextInput
           keyboardType="email-address"

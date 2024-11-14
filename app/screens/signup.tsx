@@ -4,6 +4,7 @@ import { Snackbar } from 'react-native-paper';
 import { AppwriteContext } from '../appwrite/appwritecontext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RouteParamList } from '../Routes/path';
+import Title from '@/components/title';
 
 type SignupScreenProps = NativeStackScreenProps<RouteParamList, 'Signup'>
 
@@ -62,9 +63,8 @@ const Signup = ({ navigation }: SignupScreenProps) => {
       behavior="padding"
       style={styles.container}>
       <View style={styles.formContainer}>
-        <Text style={styles.appName}>News Pulse</Text>
-
-        {/* Name */}
+        <Title />
+        
         <TextInput
           value={name}
           onChangeText={text => {
