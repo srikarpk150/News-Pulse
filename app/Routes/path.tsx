@@ -11,22 +11,28 @@ import TabNav from './bottomnav';
 
 
 type NewsArticle = {
-  title: string;
-  description: string;
   url: string;
+  title: string;
+  author?: string;
+  content?: string;
+  urlToImage?: string;
+  description: string;
   publishedAt: string;
+  source?: { id?: string; name: string;};
 };
 
 export type RouteParamList = {
+  Home: undefined;
   Login: undefined;
   Signup: undefined;
-  Home: undefined;
-  Trending: undefined;
-  Profile:undefined;
   Browse: undefined;
   Logout: undefined;
   TabNav: undefined;
+  Profile:undefined;
+  Trending: undefined;
   HomeScreen: undefined;
+  BrowseScreen:undefined;
+  TrendingScreen:undefined;
   Detail: { article: NewsArticle }
 };
 
@@ -46,7 +52,7 @@ export const RouteStack: React.FC<RouteStackProps> = ({ initialRoute }) => {
       }}
     >
       <Stack.Screen 
-        name="Home" 
+        name="HomeScreen" 
         component={Home} 
         options={{ headerShown: false }} 
       />
@@ -67,7 +73,7 @@ export const RouteStack: React.FC<RouteStackProps> = ({ initialRoute }) => {
         }}
       />
       <Stack.Screen 
-        name="Trending" 
+        name="TrendingScreen" 
         component={Trending} 
         options={{
           headerShown: false,
@@ -83,7 +89,7 @@ export const RouteStack: React.FC<RouteStackProps> = ({ initialRoute }) => {
         }}
       />
       <Stack.Screen 
-        name="Browse" 
+        name="BrowseScreen" 
         component={Browse} 
         options={{
           headerShown: false,

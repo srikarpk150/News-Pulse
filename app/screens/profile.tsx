@@ -5,7 +5,6 @@ import { AppwriteContext } from '../appwrite/appwritecontext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RouteParamList } from '../Routes/path';
 import Title from '@/components/title';
-import { Ionicons } from '@expo/vector-icons';
 
 type HomeScreenProps = NativeStackScreenProps<RouteParamList, 'Profile'>
 
@@ -20,7 +19,7 @@ const Profile = ({ navigation }: HomeScreenProps) => {
   const [isEmailModified, setIsEmailModified] = useState<boolean>(false);
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const { appwrite, setIsLoggedIn } = useContext(AppwriteContext);
+  const { appwrite, isLoggedIn, setIsLoggedIn } = useContext(AppwriteContext);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
 
@@ -94,7 +93,7 @@ const Profile = ({ navigation }: HomeScreenProps) => {
   return (
     <SafeAreaView style={styles.container}>
       
-
+      <Title />
       <View style={styles.profileImageContainer}>
         <Image source={{ uri: `https://robohash.org/${userData.email}` }} style={styles.profileImage} />
       </View>

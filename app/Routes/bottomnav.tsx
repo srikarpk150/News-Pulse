@@ -1,9 +1,9 @@
 import React, { useContext, useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import Trending from '../screens/trending';
+import {TrendingStackNavigator} from './trendingnav';
 import Profile from '../screens/profile';
-import Browse from '../screens/browse';
+import {BrowseStackNavigator} from './browsenav';
 import { HomeStackNavigator } from './homnav';
 import { AppwriteContext } from '../appwrite/appwritecontext';
 import { RouteParamList } from '../Routes/path';
@@ -39,7 +39,7 @@ export default function TabNav({ navigation }: TabNavProps) {
 
   return (
     <Tab.Navigator
-    initialRouteName="HomeScreen"
+    initialRouteName="Home"
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName:
@@ -50,7 +50,7 @@ export default function TabNav({ navigation }: TabNavProps) {
             | "exit" | "exit-outline" = "home-outline";
 
           switch (route.name) {
-            case 'HomeScreen':
+            case 'Home':
               iconName = focused ? 'home' : 'home-outline';
               break;
             case 'Trending':
@@ -89,9 +89,9 @@ export default function TabNav({ navigation }: TabNavProps) {
       })}
     >
       <Tab.Screen name="Profile" component={Profile} />
-      <Tab.Screen name="Browse" component={Browse} />
-      <Tab.Screen name="HomeScreen" component={HomeStackNavigator} />
-      <Tab.Screen name="Trending" component={Trending} />
+      <Tab.Screen name="Browse" component={BrowseStackNavigator} />
+      <Tab.Screen name="Home" component={HomeStackNavigator} />
+      <Tab.Screen name="Trending" component={TrendingStackNavigator} />
       <Tab.Screen
         name="Logout"
         component={LogoutComponent}

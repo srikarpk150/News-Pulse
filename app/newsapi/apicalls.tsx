@@ -16,7 +16,7 @@ const categoryMapping: { [key: string]: string } = {
   const trendingMapping: string[] = [
     'Sports',
     'Entertainment',
-    'Technology',
+    'Tech',
     'Health',
     'Politics',
   ];

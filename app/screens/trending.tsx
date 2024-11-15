@@ -1,11 +1,13 @@
-import { StyleSheet, Text, View, SafeAreaView, ScrollView, Image } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, ScrollView, Image, TouchableOpacity  } from 'react-native';
 import React, { useContext, useState, useEffect } from 'react';
 import { AppwriteContext } from '../appwrite/appwritecontext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RouteParamList } from '../Routes/path';
 import NewsService from '../newsapi/apicalls';
+import Title from '@/components/title';
 
-type TrendingScreenProps = NativeStackScreenProps<RouteParamList, 'Trending'>;
+
+type TrendingScreenProps = NativeStackScreenProps<RouteParamList, 'TrendingScreen'>;
 
 type UserObj = {
   name: string;
@@ -13,11 +15,14 @@ type UserObj = {
 };
 
 type NewsArticle = {
-  title: string;
-  description: string;
   url: string;
-  publishedAt: string;
+  title: string;
+  author?: string;
+  content?: string;
   urlToImage?: string;
+  description: string;
+  publishedAt: string;
+  source?: { id?: string; name: string;};
 };
 
 const Trending = ({ navigation }: TrendingScreenProps) => {
@@ -62,29 +67,22 @@ const Trending = ({ navigation }: TrendingScreenProps) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.contentWrapper}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <Text style={styles.pageTitle}>Trending News</Text>
-
+        <Title />
           <View style={styles.newsContainer}>
             {Object.keys(newsData).map((category) => (
               <View key={category} style={styles.articleCategoryContainer}>
                 <Text style={styles.sectionTitle}>{category}</Text>
                 <ScrollView horizontal contentContainerStyle={styles.horizontalScrollContent}>
-                  {newsData[category].map((article, index) => (
-                    <View key={index} style={styles.articleContainer}>
-                      {article.urlToImage ? (
-                        <Image
-                          source={{ uri: encodeURI(article.urlToImage) }}
-                          style={styles.articleImageSmall}
-                          resizeMode="cover"
-                        />
-                      ) : null}
+                {newsData[category].map((article, index) => (
+                  <TouchableOpacity key={index} style={styles.articleContainer} onPress={() => navigation.navigate('Detail', { article })}>
+                      {article.urlToImage ? ( <Image source={{ uri: encodeURI(article.urlToImage) }} style={styles.articleImageSmall} resizeMode="cover" /> ) : null}
                       <View style={styles.articleTextContainer}>
                         <Text style={styles.articleTitle}>{article.title}</Text>
                         <Text style={styles.articleDate}>
                           Published on: {new Date(article.publishedAt).toLocaleDateString()}
                         </Text>
                       </View>
-                    </View>
+                    </TouchableOpacity>
                   ))}
                 </ScrollView>
               </View>
@@ -99,7 +97,7 @@ const Trending = ({ navigation }: TrendingScreenProps) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',  // Dark background
+    backgroundColor: '#121212',
   },
   contentWrapper: {
     flex: 1, 
@@ -108,13 +106,6 @@ const styles = StyleSheet.create({
     paddingVertical: 25,
     paddingHorizontal: 18,
     alignItems: 'center',
-  },
-  pageTitle: {
-    fontSize: 26,
-    fontWeight: '600',
-    color: '#FF4500',
-    textAlign: 'center',
-    marginVertical: 16,
   },
   sectionTitle: {
     fontSize: 20,

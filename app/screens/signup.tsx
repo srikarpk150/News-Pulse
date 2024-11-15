@@ -76,7 +76,6 @@ const Signup = ({ navigation }: SignupScreenProps) => {
           style={styles.input}
         />
 
-        {/* Email */}
         <TextInput
           value={email}
           keyboardType="email-address"
@@ -89,7 +88,6 @@ const Signup = ({ navigation }: SignupScreenProps) => {
           style={styles.input}
         />
 
-        {/* Password */}
         <TextInput
           value={password}
           onChangeText={text => {
@@ -102,7 +100,6 @@ const Signup = ({ navigation }: SignupScreenProps) => {
           style={styles.input}
         />
 
-        {/* Repeat password */}
         <TextInput
           secureTextEntry
           value={repeatPassword}
@@ -115,17 +112,16 @@ const Signup = ({ navigation }: SignupScreenProps) => {
           style={styles.input}
         />
 
-        {/* Validation error */}
+
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-        {/* Signup button */}
+
         <Pressable
           onPress={handleSignup}
           style={[styles.btn, { marginTop: error ? 10 : 20 }]}>
           <Text style={styles.btnText}>Sign Up</Text>
         </Pressable>
 
-        {/* Login navigation */}
         <Pressable
           onPress={() => navigation.navigate('Login')}
           style={styles.loginContainer}>
@@ -136,7 +132,6 @@ const Signup = ({ navigation }: SignupScreenProps) => {
         </Pressable>
       </View>
 
-      {/* React Native Paper Snackbar */}
       <Snackbar
         visible={snackbarVisible}
         onDismiss={() => setSnackbarVisible(false)}

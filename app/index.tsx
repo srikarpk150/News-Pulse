@@ -1,31 +1,29 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { AppwriteContext } from './appwrite/appwritecontext';
+import { AppwriteProvider, AppwriteContext } from './appwrite/appwritecontext';
 import Loading from '../components/loading';
 import { NavigationContainer } from '@react-navigation/native';
 import { RouteStack } from './Routes/path';
 import * as Font from 'expo-font';
 
-
-export default function App() {
+const AppContent = () => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const { appwrite, isLoggedIn, setIsLoggedIn } = useContext(AppwriteContext);
     const [fontsLoaded, setFontsLoaded] = useState(false);
 
     useEffect(() => {
-      const loadFonts = async () => {
-        try {
-          await Font.loadAsync({
-            'TimesNewRoman': require('../assets/fonts/TimesNewRoman.ttf'),
-          });
-          setFontsLoaded(true);
-        } catch (e) {
-          console.error(e);
-        }
-      };
-  
-      loadFonts();
+        const loadFonts = async () => {
+            try {
+                await Font.loadAsync({
+                    'TimesNewRoman': require('../assets/fonts/TimesNewRoman.ttf'),
+                });
+                setFontsLoaded(true);
+            } catch (e) {
+                console.error(e);
+            }
+        };
+
+        loadFonts();
     }, []);
-    
 
     useEffect(() => {
         appwrite
@@ -42,15 +40,23 @@ export default function App() {
             });
     }, [appwrite, setIsLoggedIn]);
 
-    if (isLoading) {
+    if (isLoading || !fontsLoaded) {
         return <Loading />;
     }
 
     console.log(isLoggedIn ? 'Navigating to Home' : 'Navigating to Login');
     
     return (
-        <NavigationContainer independent = {true}>
-            <RouteStack initialRoute = {isLoggedIn ? 'Home' : 'Login'} />
+        <NavigationContainer independent={true}>
+            <RouteStack initialRoute={isLoggedIn ? 'TabNav' : 'Login'} />
         </NavigationContainer>
+    );
+};
+
+export default function App() {
+    return (
+        <AppwriteProvider>
+            <AppContent />
+        </AppwriteProvider>
     );
 }

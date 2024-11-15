@@ -6,7 +6,7 @@ import { RouteParamList } from '../Routes/path';
 import NewsService from '../newsapi/apicalls';
 import Title from '@/components/title';
 
-type BrowseScreenProps = NativeStackScreenProps<RouteParamList, 'Browse'>;
+type BrowseScreenProps = NativeStackScreenProps<RouteParamList, 'BrowseScreen'>;
 
 type UserObj = {
   name: String;
@@ -14,12 +14,16 @@ type UserObj = {
 };
 
 type NewsArticle = {
-  title: string;
-  description: string;
   url: string;
-  urlToImage: string;
+  title: string;
+  author?: string;
+  content?: string;
+  urlToImage?: string;
+  description: string;
   publishedAt: string;
+  source?: { id?: string; name: string;};
 };
+
 
 const Browse = ({ navigation }: BrowseScreenProps) => {
   const [userData, setUserData] = useState<UserObj>();
@@ -185,21 +189,25 @@ const Browse = ({ navigation }: BrowseScreenProps) => {
                 <Text style={styles.sectionTitle}>{category}</Text>
                 <ScrollView horizontal >
                   {newsData[category].map((article, index) => (
-                    <View key={index} style={styles.articleContainer}>
-                      {article.urlToImage ? (
+                    <TouchableOpacity 
+                      key={index} 
+                      style={styles.articleContainer} 
+                      onPress={() => navigation.navigate('Detail', { article })}
+                    >
+                      {article.urlToImage && (
                         <Image
                           source={{ uri: encodeURI(article.urlToImage) }}
                           style={styles.articleImageSmall}
                           resizeMode="cover"
                         />
-                      ) : null}
+                      )}
                       <View style={styles.articleTextContainer}>
                         <Text style={styles.articleTitle}>{article.title}</Text>
                         <Text style={styles.articleDate}>
                           Published on: {new Date(article.publishedAt).toLocaleDateString()}
                         </Text>
                       </View>
-                    </View>
+                    </TouchableOpacity>
                   ))}
                 </ScrollView>
               </View>

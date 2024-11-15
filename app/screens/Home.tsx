@@ -6,7 +6,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RouteParamList } from '../Routes/path';
 import NewsService from '../newsapi/apicalls';
 
-type HomeScreenProps = NativeStackScreenProps<RouteParamList, 'Home'>;
+type HomeScreenProps = NativeStackScreenProps<RouteParamList, 'HomeScreen'>;
 
 type UserObj = {
   name: String;
@@ -14,12 +14,16 @@ type UserObj = {
 };
 
 type NewsArticle = {
-  title: string;
-  description: string;
   url: string;
-  urlToImage: string;
+  title: string;
+  author?: string;
+  content?: string;
+  urlToImage?: string;
+  description: string;
   publishedAt: string;
+  source?: { id?: string; name: string;};
 };
+
 
 const Home = ({ navigation }: HomeScreenProps) => {
   const [userData, setUserData] = useState<UserObj>();
@@ -72,12 +76,7 @@ const Home = ({ navigation }: HomeScreenProps) => {
               <Pressable
                 key={index}
                 style={[styles.articleContainer, index === 0 && styles.firstArticle]}
-                onPress={() =>
-                  navigation.navigate('Detail', {
-                    article,
-                  })
-                }
-              >
+                onPress={() => navigation.navigate('Detail', { article, })}>
                 {index === 0 ? (
                   article.urlToImage ? (
                     <View>
