@@ -6,77 +6,124 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RouteParamList } from '../Routes/path';
 import Title from '@/components/title';
 
-type HomeScreenProps = NativeStackScreenProps<RouteParamList, 'ProfileScreen'>;
+type ProfileScreenProps = NativeStackScreenProps<RouteParamList, 'ProfileScreen'>;
 
-type UserObj = {
+interface UserObj {
   name: string;
   email: string;
   password: string;
-};
+}
 
-const Profile = ({ navigation }: HomeScreenProps) => {
+interface FormErrors {
+  name?: string;
+  email?: string;
+  password?: string;
+}
+
+const Profile = ({ navigation }: ProfileScreenProps) => {
+  // State Management
   const [userData, setUserData] = useState<UserObj>({ name: '', email: '', password: '' });
-  const [originalData, setOriginalData] = useState<UserObj>({ name: '', email: '', password: '' }); // Store initial values
-  const [isEmailModified, setIsEmailModified] = useState<boolean>(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [isSnackbarVisible, setIsSnackbarVisible] = useState(false); // Track snackbar visibility
+  const [originalData, setOriginalData] = useState<UserObj>({ name: '', email: '', password: '' });
+  const [isEmailModified, setIsEmailModified] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [snackbar, setSnackbar] = useState({ visible: false, message: '' });
+
   const { appwrite, isLoggedIn, setIsLoggedIn } = useContext(AppwriteContext);
 
+  // Helper Functions
   const showSnackbar = (message: string) => {
-    setSnackbarMessage(message);
-    setIsSnackbarVisible(true);
-    setTimeout(() => setIsSnackbarVisible(false), 3000); // Auto-hide snackbar after 3 seconds
+    setSnackbar({ visible: true, message });
+    setTimeout(() => setSnackbar({ visible: false, message: '' }), 3000);
   };
 
-  const handleSaveChanges = async () => {
-    let updateResults: string[] = [];
-
-    // Update Name (Only if changed)
-    if (userData.name !== originalData.name) {
-      try {
-        const response = await appwrite.updateUserName(userData.name, showSnackbar);
-        if (response) {
-          updateResults.push('Name updated successfully');
-          setOriginalData((prev) => ({ ...prev, name: userData.name })); // Update original name
-        }
-      } catch (e) {
-        console.log(e);
-        updateResults.push('Failed to update name');
-      }
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+    
+    if (userData.name !== originalData.name && !userData.name.trim()) {
+      newErrors.name = 'Name is required';
     }
-
-    // Update Email (Only if changed)
+    
     if (isEmailModified && userData.email !== originalData.email) {
-      const updatedUserData = {
-        email: userData.email,
-        password: userData.password,
-      };
-      try {
-        const response = await appwrite.updateUserEmail(updatedUserData, showSnackbar);
-        if (response) {
-          updateResults.push('Email updated successfully');
-          setOriginalData((prev) => ({ ...prev, email: userData.email })); // Update original email
-          setIsEmailModified(false); // Hide password field after success
-          setUserData((prev) => ({ ...prev, password: '' })); // Clear password
-        }
-      } catch (e) {
-        console.log(e);
-        updateResults.push('Failed to update email');
+      if (!userData.email.trim()) {
+        newErrors.email = 'Email is required';
+      } else if (!/\S+@\S+\.\S+/.test(userData.email)) {
+        newErrors.email = 'Invalid email format';
+      }
+      
+      if (!userData.password.trim()) {
+        newErrors.password = 'Password is required to change email';
       }
     }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
-    // Show combined results in the snackbar
-    if (updateResults.length > 0) {
-      showSnackbar(updateResults.join('. '));
-    } else {
-      showSnackbar('No changes made');
+  // API Handlers
+  const handleSaveChanges = async () => {
+    if (isEmailModified && userData.email !== originalData.email) {
+      setShowConfirmDialog(true);
+      return;
+    }
+    await saveChanges();
+  };
+
+  const saveChanges = async () => {
+    if (!validateForm()) {
+      showSnackbar('Please fix the form errors');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    const updateResults: string[] = [];
+
+    try {
+      if (userData.name !== originalData.name && userData.name.trim()) {
+        const nameResponse = await appwrite.updateUserName(userData.name, showSnackbar);
+        if (nameResponse) {
+          updateResults.push('Name updated successfully');
+          setOriginalData(prev => ({ ...prev, name: userData.name }));
+        }
+      }
+
+      if (isEmailModified && 
+          userData.email !== originalData.email && 
+          userData.email.trim() && 
+          userData.password.trim()) {
+        const emailResponse = await appwrite.updateUserEmail(
+          { email: userData.email, password: userData.password },
+          showSnackbar
+        );
+        if (emailResponse) {
+          updateResults.push('Email updated successfully');
+          setOriginalData(prev => ({ ...prev, email: userData.email }));
+          setIsEmailModified(false);
+          setUserData(prev => ({ ...prev, password: '' }));
+        }
+      }
+
+      showSnackbar(updateResults.length > 0 ? updateResults.join('. ') : 'No changes made');
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to update profile');
+      console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  // Effects
   useFocusEffect(
     useCallback(() => {
-      appwrite.getCurrentUser()
-        .then(response => {
+      const fetchUserData = async () => {
+        setIsLoading(true);
+        setError(null);
+        
+        try {
+          const response = await appwrite.getCurrentUser();
           if (response) {
             const user: UserObj = {
               name: response.name,
@@ -85,14 +132,74 @@ const Profile = ({ navigation }: HomeScreenProps) => {
             };
             setIsLoggedIn(true);
             setUserData(user);
-            setOriginalData(user); // Store initial values to compare
+            setOriginalData(user);
+            setIsEmailModified(false);
+            setErrors({});
           }
-        })
-        .catch(e => {
-          console.log(e);
+        } catch (error) {
+          console.error(error);
           showSnackbar('Failed to fetch user data');
-        });
+          setError('Failed to fetch user data');
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      fetchUserData();
     }, [appwrite])
+  );
+
+  // Render Components
+  const renderInputField = (
+    label: string,
+    value: string,
+    onChangeText: (text: string) => void,
+    options: {
+      secureTextEntry?: boolean;
+      keyboardType?: 'email-address' | 'default';
+      autoCapitalize?: 'none' | 'sentences';
+      error?: string;
+    } = {}
+  ) => (
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>{label}</Text>
+      <TextInput
+        style={styles.input}
+        placeholder={label}
+        placeholderTextColor="#C0C0C0"
+        value={value}
+        onChangeText={onChangeText}
+        {...options}
+      />
+      {options.error && <Text style={styles.errorText}>{options.error}</Text>}
+    </View>
+  );
+
+  const renderConfirmDialog = () => (
+    <View style={styles.dialogContainer}>
+      <View style={styles.dialog}>
+        <Text style={styles.dialogText}>
+          Are you sure you want to change your email? You'll need to verify the new email address.
+        </Text>
+        <View style={styles.dialogButtons}>
+          <TouchableOpacity 
+            style={styles.dialogButton}
+            onPress={() => setShowConfirmDialog(false)}
+          >
+            <Text style={styles.dialogButtonText}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.dialogButton, styles.dialogConfirmButton]}
+            onPress={async () => {
+              setShowConfirmDialog(false);
+              await saveChanges();
+            }}
+          >
+            <Text style={styles.dialogButtonText}>Confirm</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
   );
 
   return (
@@ -100,56 +207,53 @@ const Profile = ({ navigation }: HomeScreenProps) => {
       <View style={styles.container}>
         <Title />
         <View style={styles.profileImageContainer}>
-          <Image source={{ uri: `https://robohash.org/${userData.email}` }} style={styles.profileImage} />
+          <Image 
+            source={{ uri: `https://robohash.org/${userData.email}` }} 
+            style={styles.profileImage} 
+          />
         </View>
 
         <View style={styles.formContainer}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>NAME</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Name"
-              placeholderTextColor="#C0C0C0"
-              value={userData.name}
-              onChangeText={(text) => setUserData({ ...userData, name: text })}
-            />
-          </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>EMAIL</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              placeholderTextColor="#C0C0C0"
-              value={userData.email}
-              onChangeText={(text) => {
-                setUserData({ ...userData, email: text });
-                setIsEmailModified(true);
-              }}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-            {isEmailModified && (
+          {renderInputField('NAME', userData.name, 
+            (text) => setUserData({ ...userData, name: text }),
+            { error: errors.name }
+          )}
+
+          {renderInputField('EMAIL', userData.email, 
+            (text) => {
+              setUserData({ ...userData, email: text });
+              setIsEmailModified(true);
+            },
+            { 
+              keyboardType: 'email-address',
+              autoCapitalize: 'none',
+              error: errors.email 
+            }
+          )}
+
+          {isEmailModified && (
+            <>
               <Text style={styles.infoMessage}>
                 Please enter your password to update the email.
               </Text>
-            )}
-          </View>
-          {isEmailModified && (
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>PASSWORD</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter password"
-                placeholderTextColor="#C0C0C0"
-                value={userData.password}
-                onChangeText={(text) => setUserData({ ...userData, password: text })}
-                secureTextEntry={true}
-              />
-            </View>
+              {renderInputField('PASSWORD', userData.password,
+                (text) => setUserData({ ...userData, password: text }),
+                { 
+                  secureTextEntry: true,
+                  error: errors.password 
+                }
+              )}
+            </>
           )}
 
-          <TouchableOpacity style={styles.updateButton} onPress={handleSaveChanges}>
-            <Text style={styles.updateButtonText}>SAVE CHANGES</Text>
+          <TouchableOpacity 
+            style={[styles.updateButton, isLoading && styles.disabledButton]} 
+            onPress={handleSaveChanges}
+            disabled={isLoading}
+          >
+            <Text style={styles.updateButtonText}>
+              {isLoading ? 'SAVING...' : 'SAVE CHANGES'}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -160,12 +264,14 @@ const Profile = ({ navigation }: HomeScreenProps) => {
           </TouchableOpacity>
         </View>
 
-        {/* Snackbar for notifications */}
-        {isSnackbarVisible && (
+        {snackbar.visible && (
           <View style={styles.snackbar}>
-            <Text style={styles.snackbarText}>{snackbarMessage}</Text>
+            <Text style={styles.snackbarText}>{snackbar.message}</Text>
           </View>
         )}
+        
+        {error && <Text style={styles.errorText}>{error}</Text>}
+        {showConfirmDialog && renderConfirmDialog()}
       </View>
     </SafeAreaView>
   );
@@ -242,6 +348,58 @@ const styles = StyleSheet.create({
   snackbarText: {
     color: '#FFFFFF',
     fontSize: 14,
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
+  errorText: {
+    color: '#FF4500',
+    textAlign: 'center',
+    marginTop: 10,
+  },
+  dialogContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  dialog: {
+    backgroundColor: '#242424',
+    borderRadius: 8,
+    padding: 20,
+    width: '100%',
+  },
+  dialogText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  dialogButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  dialogButton: {
+    padding: 10,
+    borderRadius: 4,
+    backgroundColor: '#363636',
+    flex: 1,
+    marginRight: 10,
+    alignItems: 'center',
+  },
+  dialogConfirmButton: {
+    backgroundColor: '#007AFF',
+    flex: 1,
+    marginLeft: 10,
+  },
+  dialogButtonText: {
+    color: '#FFFFFF',
   },
 });
 

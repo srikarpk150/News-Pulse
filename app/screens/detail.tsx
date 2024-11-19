@@ -42,7 +42,13 @@ const Detail = () => {
           <Image source={{ uri: article.urlToImage }} style={styles.image} resizeMode="contain" />
         )}
         {article.author && <Text style={styles.author}>By: {article.author}</Text>}
-        {article.source?.name && <Text style={styles.source}>Source: {article.source.name}</Text>}
+
+        <View style={styles.sourceDateContainer}>
+          <Text style={styles.source}>{article.source?.name}</Text>
+          <Text style={styles.date}>
+            Published on: {new Date(article.publishedAt).toLocaleDateString()}
+          </Text>
+        </View>
 
         <Text style={styles.description}>{article.description}</Text>
 
@@ -50,13 +56,10 @@ const Detail = () => {
           <Text style={styles.fullContent}>{article.content}</Text>
         )}
 
-        <Text style={styles.date}>
-          Published on: {new Date(article.publishedAt).toLocaleDateString()}
-        </Text>
-
-        {/* Visit Page Button */}
-        <TouchableOpacity style={styles.visitButton} onPress={visitPage}>
-          <Text style={styles.visitButtonText}>Visit Full Article</Text>
+        {/* Subtle View Full Article Option */}
+        <TouchableOpacity style={styles.viewArticleLink} onPress={visitPage}>
+          <Icon name="link-outline" size={18} color="#FF4500" />
+          <Text style={styles.viewArticleLinkText}>View Full Article</Text>
         </TouchableOpacity>
 
         {/* Back and Share Buttons */}
@@ -88,7 +91,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   header: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#FF4500',
     textAlign: 'center',
@@ -101,15 +104,25 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 5,
   },
+  sourceDateContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 10,
+    marginBottom: 10,
+  },
   source: {
     fontSize: 14,
     color: '#A9A9A9',
-    textAlign: 'center',
-    marginBottom: 10,
+  },
+  date: {
+    fontSize: 14,
+    color: '#A9A9A9',
+    fontStyle: 'italic',
   },
   image: {
     width: '100%',
-    height: 250,
+    height: 200,
     marginBottom: 16,
   },
   description: {
@@ -127,24 +140,17 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     paddingHorizontal: 10,
   },
-  date: {
-    fontSize: 14,
-    fontStyle: 'italic',
-    color: '#A9A9A9',
-    textAlign: 'center',
-    marginTop: 10,
-  },
-  visitButton: {
-    marginTop: 20,
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: '#FF4500',
+  viewArticleLink: {
+    flexDirection: 'row',
     alignItems: 'center',
+    marginTop: 20,
   },
-  visitButtonText: {
-    fontSize: 16,
-    color: '#FFFFFF',
+  viewArticleLinkText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#FF4500',
     fontWeight: '600',
+    textDecorationLine: 'underline',
   },
   bottomButtons: {
     flexDirection: 'row',

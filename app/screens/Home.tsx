@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, SafeAreaView, ScrollView, Pressable, Image } from 'react-native';
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, useMemo } from 'react';
 import Title from '@/components/title';
 import { AppwriteContext } from '../appwrite/appwritecontext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -29,6 +29,7 @@ const Home = ({ navigation }: HomeScreenProps) => {
   const [userData, setUserData] = useState<UserObj>();
   const [newsData, setNewsData] = useState<NewsArticle[]>([]);
   const { appwrite, setIsLoggedIn } = useContext(AppwriteContext);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     appwrite.getCurrentUser().then((response) => {
@@ -44,18 +45,29 @@ const Home = ({ navigation }: HomeScreenProps) => {
   }, [appwrite]);
 
   useEffect(() => {
-    (async () => {
-      const newsService = new NewsService();
+    const fetchNews = async () => {
+      setIsLoading(true);
       try {
+        const newsService = new NewsService();
         const response = await newsService.getNewsFromAPI();
         if (response && response.articles) {
           setNewsData(response.articles);
         }
       } catch (error) {
-        console.log('Failed to fetch news:', error);
+        console.error('Failed to fetch news:', error);
+      } finally {
+        setIsLoading(false);
       }
-    })();
+    };
+    fetchNews();
   }, []);
+
+  const filteredNews = useMemo(() => 
+    newsData
+      .filter(article => article.urlToImage && article.urlToImage.trim() !== "")
+      .slice(0, 25),
+    [newsData]
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -72,7 +84,7 @@ const Home = ({ navigation }: HomeScreenProps) => {
 
 
           <View style={styles.newsContainer}>
-            {newsData.filter(article => article.urlToImage && article.urlToImage.trim() !== "").slice(0, 25).map((article, index) => (
+            {filteredNews.map((article, index) => (
               <Pressable
                 key={index}
                 style={[styles.articleContainer, index === 0 && styles.firstArticle]}

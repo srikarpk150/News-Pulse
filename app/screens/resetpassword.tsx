@@ -4,6 +4,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RouteParamList } from '../Routes/path';
 import { AppwriteContext } from '../appwrite/appwritecontext';
 import Title from '@/components/title';
+import { Ionicons } from '@expo/vector-icons';
 
 type ResetPasswordProps = NativeStackScreenProps<RouteParamList, 'ResetPassword'>;
 
@@ -13,11 +14,33 @@ const ResetPassword = ({ navigation }: ResetPasswordProps) => {
   const [newPassword, setNewPassword] = useState('');
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [showSnackbar, setShowSnackbar] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState<string>('');
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   const displaySnackbar = (message: string) => {
     setSnackbarMessage(message);
     setShowSnackbar(true);
     setTimeout(() => setShowSnackbar(false), 1500);
+  };
+
+  const checkPasswordStrength = (password: string) => {
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    
+    const strength = [hasUpperCase, hasLowerCase, hasNumbers, hasSpecialChar].filter(Boolean).length;
+    
+    if (password.length < 8) return 'Too short';
+    if (strength === 4) return 'Strong';
+    if (strength === 3) return 'Good';
+    return 'Weak';
+  };
+
+  const handleNewPasswordChange = (text: string) => {
+    setNewPassword(text);
+    setPasswordStrength(checkPasswordStrength(text));
   };
 
   const handleResetPassword = () => {
@@ -50,47 +73,92 @@ const ResetPassword = ({ navigation }: ResetPasswordProps) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* Title Component */}
-        <View style={styles.titleContainer}>
-          <Title />
-          <View style={styles.instructionsContainer}>
-            <Text style={styles.instructionsTitle}>Instructions:</Text>
-            <Text style={styles.instruction}>• New password must be between 8 and 256 characters.</Text>
-            <Text style={styles.instruction}>• Do not use obvious passwords like "123456", "password", or your name.</Text>
-            <Text style={styles.instruction}>• Include a mix of uppercase, lowercase, numbers, and symbols for better security.</Text>
-            <Text style={styles.instruction}>• Avoid reusing passwords from other accounts.</Text>
+        {/* Header Section with Back Button and Title */}
+        <View style={styles.headerSection}>
+          <TouchableOpacity 
+            style={styles.backButton} 
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.backButtonText}>Back</Text>
+          </TouchableOpacity>
+          <View style={styles.titleContainer}>
+            <Title />
           </View>
         </View>
 
         {/* Form Container */}
         <View style={styles.formContainer}>
           <Text style={styles.label}>OLD PASSWORD</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter old password"
-            placeholderTextColor="#C0C0C0"
-            value={oldPassword}
-            onChangeText={setOldPassword}
-            secureTextEntry={true}
-          />
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter old password"
+              placeholderTextColor="#C0C0C0"
+              value={oldPassword}
+              onChangeText={setOldPassword}
+              secureTextEntry={!showOldPassword}
+            />
+            <TouchableOpacity 
+              style={styles.eyeIcon} 
+              onPress={() => setShowOldPassword(!showOldPassword)}
+            >
+              <Ionicons 
+                name={showOldPassword ? "eye-outline" : "eye-off-outline"} 
+                size={24} 
+                color="#A9A9A9" 
+              />
+            </TouchableOpacity>
+          </View>
+
           <Text style={styles.label}>NEW PASSWORD</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter new password"
-            placeholderTextColor="#C0C0C0"
-            value={newPassword}
-            onChangeText={setNewPassword}
-            secureTextEntry={true}
-          />
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter new password"
+              placeholderTextColor="#C0C0C0"
+              value={newPassword}
+              onChangeText={handleNewPasswordChange}
+              secureTextEntry={!showNewPassword}
+            />
+            <TouchableOpacity 
+              style={styles.eyeIcon} 
+              onPress={() => setShowNewPassword(!showNewPassword)}
+            >
+              <Ionicons 
+                name={showNewPassword ? "eye-outline" : "eye-off-outline"} 
+                size={24} 
+                color="#A9A9A9" 
+              />
+            </TouchableOpacity>
+          </View>
+
+          {newPassword.length > 0 && (
+            <Text style={[
+              styles.strengthIndicator,
+              { color: passwordStrength === 'Strong' ? '#4CAF50' : 
+                      passwordStrength === 'Good' ? '#FFC107' : '#F44336' }
+            ]}>
+              Password Strength: {passwordStrength}
+            </Text>
+          )}
+
           <TouchableOpacity style={styles.updateButton} onPress={handleResetPassword}>
             <Text style={styles.updateButtonText}>RESET PASSWORD</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Back Button */}
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.backButtonText}>← Back</Text>
-        </TouchableOpacity>
+        {/* Instructions Container */}
+        <View style={styles.instructionsContainer}>
+          <Text style={styles.instructionsTitle}>Please Note:</Text>
+          <Text style={styles.instruction}>• New password must be between 8 and 256 characters.</Text>
+          <Text style={styles.instruction}>• Do not use obvious passwords like "123456", "password", or your name.</Text>
+          <Text style={styles.instruction}>• Include a mix of uppercase, lowercase, numbers, and symbols for better security.</Text>
+          <Text style={styles.instruction}>• Avoid reusing passwords from other accounts.</Text>
+          <Text style={styles.instruction}>• Don't use personal information like birthdays or phone numbers.</Text>
+          <Text style={styles.instruction}>• Avoid using sequential keyboard patterns (e.g., qwerty, 12345).</Text>
+          <Text style={styles.instruction}>• Consider using a passphrase instead of a single word.</Text>
+          <Text style={styles.instruction}>• Never share your password with anyone.</Text>
+        </View>
 
         {/* Snackbar */}
         {showSnackbar && (
@@ -107,21 +175,40 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#121212',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0, // Adjust for Android status bar
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   container: {
     flex: 1,
     backgroundColor: '#121212',
     padding: 20,
-    justifyContent: 'space-between',
+  },
+  headerSection: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    marginBottom: 20,
   },
   titleContainer: {
     alignItems: 'center',
-    marginBottom: 10,
+    flex: 1,
+  },
+  backButton: {
+    position: 'absolute',
+    left: 0,
+    padding: 10,
+    zIndex: 1,
+  },
+  backButtonText: {
+    color: '#FF4500',
+    fontSize: 16,
+    fontWeight: '600',
   },
   instructionsContainer: {
     marginTop: 10,
     paddingHorizontal: 10,
+    marginBottom: 20,
   },
   instructionsTitle: {
     fontSize: 16,
@@ -135,21 +222,25 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   formContainer: {
-    flex: 1,
-    justifyContent: 'center',
+    marginVertical: 20,
   },
   label: {
     color: '#A9A9A9',
     fontSize: 12,
     marginBottom: 5,
   },
+  inputContainer: {
+    position: 'relative',
+    marginBottom: 15,
+  },
   input: {
     backgroundColor: '#1E1E1E',
     color: '#FFFFFF',
     paddingVertical: 12,
     paddingHorizontal: 16,
+    paddingRight: 50,
     borderRadius: 8,
-    marginBottom: 15,
+    width: '100%',
   },
   updateButton: {
     backgroundColor: '#FF4500',
@@ -160,15 +251,6 @@ const styles = StyleSheet.create({
   },
   updateButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  backButton: {
-    alignSelf: 'center',
-    marginTop: 20,
-  },
-  backButtonText: {
-    color: '#FF4500',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -185,6 +267,22 @@ const styles = StyleSheet.create({
   snackbarText: {
     color: '#FFFFFF',
     fontSize: 14,
+  },
+  strengthIndicator: {
+    fontSize: 12,
+    marginTop: -10,
+    marginBottom: 15,
+    marginLeft: 5,
+  },
+  disabledButton: {
+    opacity: 0.7,
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 12,
+    height: '100%',
+    justifyContent: 'center',
+    padding: 8,
   },
 });
 

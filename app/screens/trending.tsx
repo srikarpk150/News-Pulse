@@ -1,10 +1,11 @@
-import { StyleSheet, Text, View, SafeAreaView, ScrollView, Image, TouchableOpacity  } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, ScrollView, Image, TouchableOpacity, RefreshControl } from 'react-native';
 import React, { useContext, useState, useEffect } from 'react';
 import { AppwriteContext } from '../appwrite/appwritecontext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RouteParamList } from '../Routes/path';
 import NewsService from '../newsapi/apicalls';
 import Title from '@/components/title';
+import { memo } from 'react';
 
 
 type TrendingScreenProps = NativeStackScreenProps<RouteParamList, 'TrendingScreen'>;
@@ -25,10 +26,37 @@ type NewsArticle = {
   source?: { id?: string; name: string;};
 };
 
+type ArticleProps = {
+  article: NewsArticle;
+  onPress: (article: NewsArticle) => void;
+};
+
+const Article = memo(({ article, onPress }: ArticleProps) => (
+  <TouchableOpacity style={styles.articleContainer} onPress={() => onPress(article)}>
+    {article.urlToImage && (
+      <Image 
+        source={{ uri: encodeURI(article.urlToImage) }} 
+        style={styles.articleImageSmall} 
+        resizeMode="cover"
+        defaultSource={require('../../assets/images/placeholder-image.png')}
+        onError={(e) => console.log('Image loading error:', e.nativeEvent.error)}
+      />
+    )}
+    <View style={styles.articleTextContainer}>
+      <Text style={styles.articleTitle}>{article.title}</Text>
+      <Text style={styles.articleDate}>
+        Published on: {new Date(article.publishedAt).toLocaleDateString()}
+      </Text>
+    </View>
+  </TouchableOpacity>
+));
+
 const Trending = ({ navigation }: TrendingScreenProps) => {
   const [userData, setUserData] = useState<UserObj>();
   const [newsData, setNewsData] = useState<Record<string, NewsArticle[]>>({});
   const { appwrite, setIsLoggedIn } = useContext(AppwriteContext);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     appwrite.getCurrentUser()
@@ -43,51 +71,70 @@ const Trending = ({ navigation }: TrendingScreenProps) => {
       });
   }, [appwrite]);
 
-  useEffect(() => {
-    const fetchNewsData = async () => {
-      const newsService = new NewsService();
-      const categoryData: Record<string, NewsArticle[]> = {};
+  const fetchNewsData = async () => {
+    setIsLoading(true);
+    setError(null);
+    const newsService = new NewsService();
+    const categoryData: Record<string, NewsArticle[]> = {};
 
-      try {
-        const response = await newsService.getTrendingNewsFromAPI();
-        if (response) {
-          for (const [category, articles] of Object.entries(response)) {
-            categoryData[category] = articles.slice(0, 20);
-          }
+    try {
+      const response = await newsService.getTrendingNewsFromAPI();
+      if (response) {
+        for (const [category, articles] of Object.entries(response)) {
+          categoryData[category] = articles.slice(0, 20);
         }
-        setNewsData(categoryData);
-      } catch (error) {
-        console.log("Failed to fetch news:", error);
       }
-    };
+      setNewsData(categoryData);
+    } catch (error) {
+      console.log("Failed to fetch news:", error);
+      setError('Failed to load news. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchNewsData();
   }, []);
+
+  const handleArticlePress = (article: NewsArticle) => {
+    navigation.navigate('Detail', { article });
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.contentWrapper}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Title />
-          <View style={styles.newsContainer}>
-            {Object.keys(newsData).map((category) => (
-              <View key={category} style={styles.articleCategoryContainer}>
-                <Text style={styles.sectionTitle}>{category}</Text>
-                <ScrollView horizontal contentContainerStyle={styles.horizontalScrollContent}>
-                {newsData[category].map((article, index) => (
-                  <TouchableOpacity key={index} style={styles.articleContainer} onPress={() => navigation.navigate('Detail', { article })}>
-                      {article.urlToImage ? ( <Image source={{ uri: encodeURI(article.urlToImage) }} style={styles.articleImageSmall} resizeMode="cover" /> ) : null}
-                      <View style={styles.articleTextContainer}>
-                        <Text style={styles.articleTitle}>{article.title}</Text>
-                        <Text style={styles.articleDate}>
-                          Published on: {new Date(article.publishedAt).toLocaleDateString()}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-            ))}
-          </View>
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={isLoading}
+              onRefresh={fetchNewsData}
+              tintColor="#FF4500"
+            />
+          }
+        >
+          <Title />
+          {error ? (
+            <Text style={styles.errorText}>{error}</Text>
+          ) : (
+            <View style={styles.newsContainer}>
+              {Object.keys(newsData).map((category) => (
+                <View key={category} style={styles.articleCategoryContainer}>
+                  <Text style={styles.sectionTitle}>{category}</Text>
+                  <ScrollView horizontal contentContainerStyle={styles.horizontalScrollContent}>
+                    {newsData[category].map((article, index) => (
+                      <Article
+                        key={`${category}-${index}`}
+                        article={article}
+                        onPress={handleArticlePress}
+                      />
+                    ))}
+                  </ScrollView>
+                </View>
+              ))}
+            </View>
+          )}
         </ScrollView>
       </View>
     </SafeAreaView>
@@ -160,6 +207,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#A9A9A9',
     textAlign: 'center',
+  },
+  errorText: {
+    color: '#FF4500',
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 20,
   },
 });
 
