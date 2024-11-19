@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, View, Text, StyleSheet, Image, TouchableOpacity, Share, ScrollView } from 'react-native';
+import { SafeAreaView, View, Text, StyleSheet, Image, TouchableOpacity, Share, ScrollView, Linking } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { RouteParamList } from '../Routes/path';
 import Title from '@/components/title';
@@ -22,44 +22,53 @@ const Detail = () => {
     }
   };
 
+  const visitPage = () => {
+    if (article.url) {
+      Linking.openURL(article.url).catch((err) => console.error("Couldn't open the URL:", err));
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Title Component */}
         <View style={styles.titleContainer}>
           <Title />
         </View>
-        
-        {/* Main Content */}
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <Text style={styles.header}>{article.title}</Text>
-          {article.urlToImage && (
-            <Image source={{ uri: article.urlToImage }} style={styles.image} />
-          )}
-          {article.author && <Text style={styles.author}>By: {article.author}</Text>}
-          {article.source?.name && <Text style={styles.source}>Source: {article.source.name}</Text>}
-          
-          <Text style={styles.description}>{article.description}</Text>
-          
-          {article.content && (
-            <Text style={styles.fullContent}>{article.content}</Text>
-          )}
-          
-          <Text style={styles.date}>
-            Published on: {new Date(article.publishedAt).toLocaleDateString()}
-          </Text>
-        </ScrollView>
-        
-        {/* Bottom Buttons */}
+
+        {/* Article Content */}
+        <Text style={styles.header}>{article.title}</Text>
+        {article.urlToImage && (
+          <Image source={{ uri: article.urlToImage }} style={styles.image} resizeMode="contain" />
+        )}
+        {article.author && <Text style={styles.author}>By: {article.author}</Text>}
+        {article.source?.name && <Text style={styles.source}>Source: {article.source.name}</Text>}
+
+        <Text style={styles.description}>{article.description}</Text>
+
+        {article.content && (
+          <Text style={styles.fullContent}>{article.content}</Text>
+        )}
+
+        <Text style={styles.date}>
+          Published on: {new Date(article.publishedAt).toLocaleDateString()}
+        </Text>
+
+        {/* Visit Page Button */}
+        <TouchableOpacity style={styles.visitButton} onPress={visitPage}>
+          <Text style={styles.visitButtonText}>Visit Full Article</Text>
+        </TouchableOpacity>
+
+        {/* Back and Share Buttons */}
         <View style={styles.bottomButtons}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
-            <Icon name="arrow-back" size={24} color="#FFFFFF" />
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Text style={styles.backButtonText}>← Back</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleShare} style={styles.iconButton}>
-            <Icon name="share-social" size={24} color="#FFFFFF" />
+          <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
+            <Icon name="share-social-outline" size={24} color="#FF4500" />
           </TouchableOpacity>
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -69,18 +78,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#121212',
   },
-  container: {
-    flex: 1,
-    backgroundColor: '#121212',
-  },
-  titleContainer: {
-    paddingVertical: 16,
-    alignItems: 'center',
-    backgroundColor: '#121212',
-  },
   scrollContent: {
+    flexGrow: 1,
     padding: 20,
     alignItems: 'center',
+  },
+  titleContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
   },
   header: {
     fontSize: 26,
@@ -103,9 +108,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   image: {
-    width: '90%',
-    height: 200,
-    borderRadius: 10,
+    width: '100%',
+    height: 250,
     marginBottom: 16,
   },
   description: {
@@ -130,18 +134,36 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 10,
   },
+  visitButton: {
+    marginTop: 20,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: '#FF4500',
+    alignItems: 'center',
+  },
+  visitButtonText: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
   bottomButtons: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 12,
-    backgroundColor: '#1E1E1E',
-    borderTopWidth: 1,
-    borderTopColor: '#333333',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 20,
+    width: '100%',
+    paddingHorizontal: 20,
   },
-  iconButton: {
+  backButton: {
     padding: 10,
-    backgroundColor: '#333333',
-    borderRadius: 20,
+  },
+  backButtonText: {
+    color: '#FF4500',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  shareButton: {
+    padding: 10,
   },
 });
 

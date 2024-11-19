@@ -2,7 +2,7 @@ import React, { useContext, useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import {TrendingStackNavigator} from './trendingnav';
-import Profile from '../screens/profile';
+import { ProfileStackNavigator } from './profilenav';
 import {BrowseStackNavigator} from './browsenav';
 import { HomeStackNavigator } from './homnav';
 import { AppwriteContext } from '../appwrite/appwritecontext';
@@ -88,7 +88,7 @@ export default function TabNav({ navigation }: TabNavProps) {
         headerShown: false,
       })}
     >
-      <Tab.Screen name="Profile" component={Profile} />
+      <Tab.Screen name="Profile" component={ProfileStackNavigator} />
       <Tab.Screen name="Browse" component={BrowseStackNavigator} />
       <Tab.Screen name="Home" component={HomeStackNavigator} />
       <Tab.Screen name="Trending" component={TrendingStackNavigator} />

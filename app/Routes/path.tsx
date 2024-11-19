@@ -8,6 +8,7 @@ import Profile from '../screens/profile';
 import Browse from '../screens/browse';
 import Detail from '../screens/detail';
 import TabNav from './bottomnav';
+import ResetPassword from '../screens/resetpassword';
 
 
 type NewsArticle = {
@@ -28,10 +29,11 @@ export type RouteParamList = {
   Browse: undefined;
   Logout: undefined;
   TabNav: undefined;
-  Profile:undefined;
   Trending: undefined;
   HomeScreen: undefined;
   BrowseScreen:undefined;
+  ResetPassword:undefined;
+  ProfileScreen:undefined;
   TrendingScreen:undefined;
   Detail: { article: NewsArticle }
 };
@@ -81,7 +83,7 @@ export const RouteStack: React.FC<RouteStackProps> = ({ initialRoute }) => {
         }}
       />
       <Stack.Screen 
-        name="Profile" 
+        name="ProfileScreen" 
         component={Profile} 
         options={{
           headerShown: false,
