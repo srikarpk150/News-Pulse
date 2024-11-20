@@ -8,6 +8,9 @@ import Title from '@/components/title';
 
 type ProfileScreenProps = NativeStackScreenProps<RouteParamList, 'ProfileScreen'>;
 
+// https://callstack.github.io/react-native-paper/  - Snackbar reference
+// https://robohash.org/ - Placeholder image used in Profile 
+
 interface UserObj {
   name: string;
   email: string;

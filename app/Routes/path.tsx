@@ -29,6 +29,7 @@ export type RouteParamList = {
   Browse: undefined;
   Logout: undefined;
   TabNav: undefined;
+  Profile:undefined;
   Trending: undefined;
   HomeScreen: undefined;
   BrowseScreen:undefined;

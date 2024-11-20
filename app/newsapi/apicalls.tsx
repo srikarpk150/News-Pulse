@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+//https://newsapi.org/docs
 
 const categoryMapping: { [key: string]: string } = {
     "Corporate/Industry Events": "Conference",

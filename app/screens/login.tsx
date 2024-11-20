@@ -9,6 +9,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 
+// https://callstack.github.io/react-native-paper/  - Snackbar reference 
+
 type LoginScreenProps = NativeStackScreenProps<RouteParamList, 'Login'>
 SplashScreen.preventAutoHideAsync();
 

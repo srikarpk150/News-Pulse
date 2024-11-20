@@ -31,6 +31,8 @@ type ArticleProps = {
   onPress: (article: NewsArticle) => void;
 };
 
+// https://nbhc.ca/sites/default/files/styles/article/public/default_images/news-default-image%402x_0.png?itok=B4jML1jF - PlaceHolder image
+
 const Article = memo(({ article, onPress }: ArticleProps) => (
   <TouchableOpacity style={styles.articleContainer} onPress={() => onPress(article)}>
     {article.urlToImage && (

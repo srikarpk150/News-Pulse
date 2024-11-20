@@ -22,6 +22,7 @@ const Signup = ({ navigation }: SignupScreenProps) => {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false);
   const [showRepeatPassword, setShowRepeatPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState<'weak' | 'medium' | 'strong'>('weak');
 
   const showSnackbar = (message: string) => {
     setSnackbarMessage(message);
@@ -33,9 +34,27 @@ const Signup = ({ navigation }: SignupScreenProps) => {
     return emailRegex.test(email)
   }
 
+  const checkPasswordStrength = (password: string): 'weak' | 'medium' | 'strong' => {
+    let score = 0;
+    
+    // Length check
+    if (password.length >= 8) score++;
+    if (password.length >= 12) score++;
+    
+    // Complexity checks
+    if (/[A-Z]/.test(password)) score++;
+    if (/[a-z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+    
+    if (score < 3) return 'weak';
+    if (score < 5) return 'medium';
+    return 'strong';
+  };
+
   const isValidPassword = (password: string): boolean => {
-    return password.length >= 8
-  }
+    return checkPasswordStrength(password) !== 'weak';
+  };
 
   const handleSignup = () => {
     if (
@@ -122,6 +141,7 @@ const Signup = ({ navigation }: SignupScreenProps) => {
               onChangeText={text => {
                 setError('');
                 setPassword(text);
+                setPasswordStrength(checkPasswordStrength(text));
               }}
               placeholderTextColor={styles.inputPlaceholder.color}
               placeholder="Password"
@@ -161,6 +181,20 @@ const Signup = ({ navigation }: SignupScreenProps) => {
               />
             </Pressable>
           </View>
+
+          {password.length > 0 && (
+            <View style={styles.strengthIndicator}>
+              <View style={[
+                styles.strengthBar,
+                styles.strengthWeak,
+                passwordStrength === 'medium' && styles.strengthMedium,
+                passwordStrength === 'strong' && styles.strengthStrong,
+              ]} />
+              <Text style={styles.strengthText}>
+                Password Strength: {passwordStrength.charAt(0).toUpperCase() + passwordStrength.slice(1)}
+              </Text>
+            </View>
+          )}
 
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
@@ -317,6 +351,33 @@ const styles = StyleSheet.create({
     height: 50,
     justifyContent: 'center',
     paddingHorizontal: 8,
+  },
+  strengthIndicator: {
+    marginTop: 8,
+    width: '100%',
+  },
+  strengthBar: {
+    height: 4,
+    borderRadius: 2,
+    width: '100%',
+    backgroundColor: '#D32F2F', // Default weak color
+  },
+  strengthWeak: {
+    backgroundColor: '#D32F2F', // Red
+    width: '33%',
+  },
+  strengthMedium: {
+    backgroundColor: '#FFA000', // Orange
+    width: '66%',
+  },
+  strengthStrong: {
+    backgroundColor: '#388E3C', // Green
+    width: '100%',
+  },
+  strengthText: {
+    color: '#A9A9A9',
+    fontSize: 12,
+    marginTop: 4,
   },
 });
 

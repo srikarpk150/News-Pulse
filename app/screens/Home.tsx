@@ -8,6 +8,8 @@ import NewsService from '../newsapi/apicalls';
 
 type HomeScreenProps = NativeStackScreenProps<RouteParamList, 'HomeScreen'>;
 
+// https://callstack.github.io/react-native-paper/  - Snackbar reference 
+
 type UserObj = {
   name: String;
   email: String;

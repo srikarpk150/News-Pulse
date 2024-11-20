@@ -5,6 +5,8 @@ import { RouteParamList } from '../Routes/path';
 import Title from '@/components/title';
 import Icon from 'react-native-vector-icons/Ionicons';
 
+// https://callstack.github.io/react-native-paper/  - Snackbar reference 
+
 type DetailScreenRouteProp = RouteProp<RouteParamList, 'Detail'>;
 
 const Detail = () => {

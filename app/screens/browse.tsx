@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View, SafeAreaView, ScrollView, TouchableOpacity, Image } from 'react-native';
-import React, { useContext, useState, useEffect } from 'react';
+import { StyleSheet, Text, View, SafeAreaView, ScrollView, TouchableOpacity, Image, ActivityIndicator, RefreshControl } from 'react-native';
+import React, { useContext, useState, useEffect, useCallback } from 'react';
 import { AppwriteContext } from '../appwrite/appwritecontext';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RouteParamList } from '../Routes/path';
@@ -33,6 +33,9 @@ const Browse = ({ navigation }: BrowseScreenProps) => {
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [documentId, setDocumentId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const showSnackbar = (message: string) => {
     setSnackbarMessage(message);
@@ -51,7 +54,7 @@ const Browse = ({ navigation }: BrowseScreenProps) => {
     "Listening and Community Events",
   ];
 
-  const toggleCategory = (category: string) => {
+  const toggleCategory = useCallback((category: string) => {
     setSelectedCategories(prev => {
       const updatedCategories = prev.includes(category)
         ? prev.filter(c => c !== category)
@@ -60,7 +63,7 @@ const Browse = ({ navigation }: BrowseScreenProps) => {
       saveCategoriesToDatabase(updatedCategories);
       return updatedCategories;
     });
-  };
+  }, []);
 
   const saveCategoriesToDatabase = async (categories: string[]) => {
     try {
@@ -123,6 +126,18 @@ const Browse = ({ navigation }: BrowseScreenProps) => {
     }
   };
 
+  const onRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await loadSavedCategories();
+      setError(null);
+    } catch (error) {
+      setError('Failed to refresh data');
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, []);
+
   useEffect(() => {
     appwrite.getCurrentUser()
       .then(response => {
@@ -140,6 +155,8 @@ const Browse = ({ navigation }: BrowseScreenProps) => {
 
   useEffect(() => {
     const fetchNewsData = async () => {
+      setIsLoading(true);
+      setError(null);
       const newsService = new NewsService();
       const categoryData: Record<string, NewsArticle[]> = {};
 
@@ -152,7 +169,10 @@ const Browse = ({ navigation }: BrowseScreenProps) => {
         }
         setNewsData(categoryData);
       } catch (error) {
-        console.log("Failed to fetch news:", error);
+        setError('Failed to fetch news');
+        showSnackbar('Error loading news');
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -164,8 +184,19 @@ const Browse = ({ navigation }: BrowseScreenProps) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.contentWrapper}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+          }
+        >
           <Title />
+          
+          {error && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
 
           <Text style={styles.sectionTitle}>Select Categories:</Text>
           <View style={styles.categoriesContainer}>
@@ -184,34 +215,46 @@ const Browse = ({ navigation }: BrowseScreenProps) => {
           </View>
 
           <View style={styles.newsContainer}>
-            {Object.keys(newsData).map((category) => (
-              <View key={category} style={styles.articleCategoryContainer}>
-                <Text style={styles.sectionTitle}>{category}</Text>
-                <ScrollView horizontal >
-                  {newsData[category].map((article, index) => (
-                    <TouchableOpacity 
-                      key={index} 
-                      style={styles.articleContainer} 
-                      onPress={() => navigation.navigate('Detail', { article })}
-                    >
-                      {article.urlToImage && (
-                        <Image
-                          source={{ uri: encodeURI(article.urlToImage) }}
-                          style={styles.articleImageSmall}
-                          resizeMode="cover"
-                        />
-                      )}
-                      <View style={styles.articleTextContainer}>
-                        <Text style={styles.articleTitle}>{article.title}</Text>
-                        <Text style={styles.articleDate}>
-                          Published on: {new Date(article.publishedAt).toLocaleDateString()}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-            ))}
+            {isLoading ? (
+              <ActivityIndicator size="large" color="#FF4500" />
+            ) : selectedCategories.length === 0 ? (
+              <Text style={styles.emptyStateText}>
+                Select categories to see news
+              </Text>
+            ) : Object.keys(newsData).length === 0 ? (
+              <Text style={styles.emptyStateText}>
+                No news found for selected categories
+              </Text>
+            ) : (
+              Object.keys(newsData).map((category) => (
+                <View key={category} style={styles.articleCategoryContainer}>
+                  <Text style={styles.sectionTitle}>{category}</Text>
+                  <ScrollView horizontal >
+                    {newsData[category].map((article, index) => (
+                      <TouchableOpacity 
+                        key={index} 
+                        style={styles.articleContainer} 
+                        onPress={() => navigation.navigate('Detail', { article })}
+                      >
+                        {article.urlToImage && (
+                          <Image
+                            source={{ uri: encodeURI(article.urlToImage) }}
+                            style={styles.articleImageSmall}
+                            resizeMode="cover"
+                          />
+                        )}
+                        <View style={styles.articleTextContainer}>
+                          <Text style={styles.articleTitle}>{article.title}</Text>
+                          <Text style={styles.articleDate}>
+                            Published on: {new Date(article.publishedAt).toLocaleDateString()}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              ))
+            )}
           </View>
         </ScrollView>
       </View>
@@ -307,6 +350,22 @@ const styles = StyleSheet.create({
     color: '#A9A9A9',
     marginTop: 10,
     textAlign: 'center',
+  },
+  errorContainer: {
+    padding: 10,
+    backgroundColor: '#FF000020',
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: '#FF0000',
+    textAlign: 'center',
+  },
+  emptyStateText: {
+    color: '#A9A9A9',
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 20,
   },
 });
 

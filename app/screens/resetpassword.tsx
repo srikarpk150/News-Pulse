@@ -8,6 +8,8 @@ import { Ionicons } from '@expo/vector-icons';
 
 type ResetPasswordProps = NativeStackScreenProps<RouteParamList, 'ResetPassword'>;
 
+// https://callstack.github.io/react-native-paper/  - Snackbar reference 
+
 const ResetPassword = ({ navigation }: ResetPasswordProps) => {
   const { appwrite } = useContext(AppwriteContext);
   const [oldPassword, setOldPassword] = useState('');
@@ -73,7 +75,6 @@ const ResetPassword = ({ navigation }: ResetPasswordProps) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* Header Section with Back Button and Title */}
         <View style={styles.headerSection}>
           <TouchableOpacity 
             style={styles.backButton} 
@@ -86,7 +87,6 @@ const ResetPassword = ({ navigation }: ResetPasswordProps) => {
           </View>
         </View>
 
-        {/* Form Container */}
         <View style={styles.formContainer}>
           <Text style={styles.label}>OLD PASSWORD</Text>
           <View style={styles.inputContainer}>
@@ -146,8 +146,6 @@ const ResetPassword = ({ navigation }: ResetPasswordProps) => {
             <Text style={styles.updateButtonText}>RESET PASSWORD</Text>
           </TouchableOpacity>
         </View>
-
-        {/* Instructions Container */}
         <View style={styles.instructionsContainer}>
           <Text style={styles.instructionsTitle}>Please Note:</Text>
           <Text style={styles.instruction}>• New password must be between 8 and 256 characters.</Text>
@@ -159,8 +157,6 @@ const ResetPassword = ({ navigation }: ResetPasswordProps) => {
           <Text style={styles.instruction}>• Consider using a passphrase instead of a single word.</Text>
           <Text style={styles.instruction}>• Never share your password with anyone.</Text>
         </View>
-
-        {/* Snackbar */}
         {showSnackbar && (
           <View style={styles.snackbar}>
             <Text style={styles.snackbarText}>{snackbarMessage}</Text>

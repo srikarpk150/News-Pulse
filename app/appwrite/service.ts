@@ -5,6 +5,9 @@ const appwriteClient = new Client();
 const APPWRITE_ENDPOINT: string = process.env.EXPO_PUBLIC_APPWRITE_ENDPOINT!;
 const APPWRITE_PROJECT_ID: string = process.env.EXPO_PUBLIC_APPWRITE_ID!;
 
+//https://appwrite.io/docs/references/cloud/client-web/account - Appwrite Docs
+//https://www.youtube.com/watch?v=zlojM-Jbux4&t=287s - AppWrite Integration Reference
+
 type CreateUserAccount = {
   email: string;
   password: string;
